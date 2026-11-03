@@ -1,8 +1,12 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 import org.hibernate.annotations.Comment;
+import payroll.leave.dto.LeaveRequestDTO;
 
+@Getter
 @Entity
 @Table(name = "leave_records")
 public class LeaveRecord {
@@ -17,16 +21,39 @@ public class LeaveRecord {
     @Column(name = "year")
     private int year;
 
-    @Comment("총 연차")
+    @Column(name = "month")
+    private int month;
+
+    @Comment("총 월차")
     @Column(name = "total_leave")
     private int totalLeave;
 
-    @Comment("사용 연차")
+    @Comment("사용 월차")
     @Column(name = "used_leave")
     private int usedLeave;
 
-    @Comment("남은 연차")
+    @Comment("남은 월차")
     @Column(name = "remaining_leave")
     private int remainingLeave;
 
+    @Comment("삭제 여부")
+    @Column(name = "delete_yn")
+    private String deleteYn;
+
+    @Builder
+    public LeaveRecord(Long empId, int year, int month){
+        this.empId = empId;
+        this.year = year;
+        this.month = month;
+    }
+
+    public void update(LeaveRequestDTO requestDTO){
+        this.totalLeave = requestDTO.getTotalLeave();
+//        this.usedLeave = requestDTO.getUsedLeave();
+        this.remainingLeave = this.totalLeave - this.usedLeave;
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
+    }
 }

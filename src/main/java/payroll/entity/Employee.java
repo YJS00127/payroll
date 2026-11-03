@@ -1,11 +1,15 @@
 package payroll.entity;
 
-
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 import org.hibernate.annotations.Comment;
+import payroll.employee.dto.EmpRequestDTO;
+import payroll.employee.dto.EmpUpdateRequestDTO;
 
 import java.time.LocalDate;
 
+@Getter
 @Entity
 @Table(name="employees")
 public class Employee {
@@ -15,7 +19,7 @@ public class Employee {
     @SequenceGenerator(name = "employee_seq", sequenceName = "employee_seq", allocationSize = 1)
     private Long id;
 
-    @Comment("부서 ID")
+    @Comment("부서 Id")
     @Column(name = "dept_id")
     private Long deptId;
 
@@ -31,17 +35,13 @@ public class Employee {
     @Column(name = "birth")
     private LocalDate birth;
 
+    @Comment("성별")
+    @Column(name = "gender")
+    private String gender;
+
     @Comment("직급")
     @Column(name = "rank")
     private String rank;
-
-    @Comment("이메일")
-    @Column(name = "email")
-    private String email;
-
-    @Comment("주소")
-    @Column(name = "address")
-    private String address;
 
     @Comment("입사일")
     @Column(name = "joining_date")
@@ -54,4 +54,36 @@ public class Employee {
     @Comment("등록일")
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDate createdAt;
+
+    @Comment("시급")
+    @Column(name = "hourly_wage")
+    private int hourlyWage;
+
+    @Builder
+    public Employee(Long deptId, String name, String code, LocalDate birth, String gender,
+                    String rank, LocalDate joiningDate, int hourlyWage){
+        this.deptId = deptId;
+        this.name = name;
+        this.code = code;
+        this.birth = birth;
+        this.gender = gender;
+        this.rank = rank;
+        this.joiningDate = joiningDate;
+        this.hourlyWage = hourlyWage;
+    }
+
+    public void update(EmpUpdateRequestDTO request, Long deptId){
+        this.deptId = deptId;
+        this.name = request.getName();
+        this.code = request.getCode();
+        this.birth = request.getBirth();
+        this.gender = request.getCode();
+        this.rank = request.getRank();
+        this.joiningDate = request.getJoiningDate();
+        this.hourlyWage = request.getHourlyWage();
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
+    }
 }

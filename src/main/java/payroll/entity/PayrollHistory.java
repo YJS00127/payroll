@@ -1,11 +1,19 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 import org.hibernate.annotations.Comment;
+import payroll.payroll.dto.PayrollHistoryDeductionDTO;
+import payroll.payroll.dto.PayrollHistoryPaymentDTO;
 
+import java.time.LocalDate;
+
+@Getter
 @Entity
-@Table(name = "payroll_records")
-public class PayrollRecord {
+@Table(name = "payroll_history")
+@Builder
+public class PayrollHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "payroll_record_seq")
@@ -25,7 +33,7 @@ public class PayrollRecord {
     @Column(name = "hourly_wage")
     private int hourlyWage;
 
-    @Comment("기본 급여")
+    @Comment("기본급여")
     @Column(name = "basic_salary")
     private int basicSalary;
 
@@ -33,7 +41,7 @@ public class PayrollRecord {
     @Column(name = "weekly_holiday_pay")
     private int weeklyHolidayPay;
 
-    @Comment("전일월소급분")
+    @Comment("전월소급분")
     @Column(name = "retroactive_pay")
     private int retroactivePay;
 
@@ -41,9 +49,9 @@ public class PayrollRecord {
     @Column(name = "deduction_amount")
     private int deductionAmount;
 
-    @Comment("월차 수당")
-    @Column(name = "monthly_holiday_hours")
-    private int monthlyHolidayHours;
+    @Comment("월차수당")
+    @Column(name = "monthly_holiday_pay")
+    private int monthlyHolidayPay;
 
     @Comment("식대")
     @Column(name = "meal_allowance")
@@ -57,11 +65,15 @@ public class PayrollRecord {
     @Column(name = "unpaid_allowance")
     private int unpaidAllowance;
 
-    @Comment("기타 수당")
+    @Comment("미지급수당 사유")
+    @Column(name = "unpaid_allowance_reason")
+    private String unpaidAllowanceReason;
+
+    @Comment("기타수당")
     @Column(name = "other_allowance")
     private int otherAllowance;
 
-    @Comment("휴일 근로 수당")
+    @Comment("휴일근로수당")
     @Column(name = "holiday_work_pay")
     private int holidayWorkPay;
 
@@ -105,15 +117,58 @@ public class PayrollRecord {
     @Column(name = "local_income_tax")
     private int localIncomeTax;
 
-    @Comment("총지급액")
+    @Comment("총 지급액")
     @Column(name = "gross_salary")
     private int grossSalary;
 
-    @Comment("총공제액")
+    @Comment("총 공제액")
     @Column(name = "total_deductions")
     private int totalDeductions;
 
     @Comment("실수령액")
     @Column(name = "net_salary")
     private int netSalary;
+
+    @Comment("급여지급일")
+    @Column(name = "payment_date")
+    private LocalDate paymentDate;
+
+    @Comment("삭제여부")
+    @Column(name = "delete_yn")
+    private String deleteYn;
+
+    public void update(PayrollHistoryPaymentDTO payment, PayrollHistoryDeductionDTO deduction,
+                       int grossSalary, int totalDeduction ,int netSalary){
+        // 지급액
+        this.basicSalary = payment.getBasicSalary();
+        this.weeklyHolidayPay = payment.getWeeklyHolidayPay();
+        this.retroactivePay = payment.getRetroactivePay();
+        this.deductionAmount = payment.getDeductionAmount();
+        this.monthlyHolidayPay = payment.getRetroactivePay();
+        this.mealAllowance = payment.getMealAllowance();
+        this.overtimePay = payment.getOverTimePay();
+        this.unpaidAllowance = payment.getUnpaidAllowance();
+        this.unpaidAllowanceReason = payment.getUnpaidAllowanceReason();
+        this.otherAllowance = payment.getOtherAllowance();
+        this.holidayWorkPay = payment.getHolidayWorkPay();
+        this.grossSalary = grossSalary;
+        // 공제액
+        this.nationalPension = deduction.getNationalPension();
+        this.healthInsurance = deduction.getHealthInsurance();
+        this.longTermCareInsurance = deduction.getLongTermCareInsurance();
+        this.employmentInsurance = deduction.getEmploymentInsurance();
+        this.healthInsuranceAdjustment = deduction.getHealthInsuranceAdjustment();
+        this.longTermCareAdjustment = deduction.getLongTermCareAdjustment();
+        this.retirementIncomeTax = deduction.getRetirementIncomeTax();
+        this.retirementLocalIncomeTax = deduction.getRetirementLocalIncomeTax();
+        this.incomeTax = deduction.getIncomeTax();
+        this.localIncomeTax = deduction.getLocalIncomeTax();
+        this.totalDeductions = totalDeduction;
+        // 실수령액
+        this.netSalary = netSalary;
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
+    }
 }

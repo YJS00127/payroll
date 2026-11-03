@@ -2,10 +2,13 @@ package payroll.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import org.hibernate.annotations.Comment;
+import payroll.department.dto.DeptRequestDTO;
 
 import java.time.LocalDate;
 
+@Getter
 @Entity
 @Table(name="departments")
 public class Department {
@@ -40,5 +43,16 @@ public class Department {
         this.name = name;
         this.code = code;
         this.createdDeptDate = createdDeptDate;
+    }
+
+//    부서 정보 수정
+    public void update(DeptRequestDTO request){
+        this.name = request.getName();
+        this.code = request.getCode();
+        this.createdDeptDate = request.getCreatedDeptDate();
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
     }
 }
