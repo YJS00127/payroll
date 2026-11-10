@@ -2,10 +2,10 @@ package payroll.workHistory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
 import payroll.workHistory.dto.WorkRequestDTO;
 import payroll.workHistory.dto.WorkResponseDTO;
-import payroll.workHistory.dto.WorkResultDTO;
 import payroll.workHistory.dto.WorkUpdateRequestDTO;
 
 public interface WorkService {
@@ -13,9 +13,9 @@ public interface WorkService {
 
     void saveWorkHistory(WorkRequestDTO requestDTO);
 
-    WorkResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO);
+    ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO);
 
     void autoUpdateWorkHistory(AttendanceRecord attendanceRecord);
 
-    WorkResultDTO deleteWorkHistory(Long id);
+//    ResultDTO deleteWorkHistory(Long id);
 }

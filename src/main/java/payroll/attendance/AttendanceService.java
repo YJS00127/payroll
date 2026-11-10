@@ -4,18 +4,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import payroll.attendance.dto.AttendanceRequestDTO;
 import payroll.attendance.dto.AttendanceResponseDTO;
-import payroll.attendance.dto.AttendanceResultDTO;
 import payroll.attendance.dto.AttendanceSearchDTO;
+import payroll.common.dto.ResultDTO;
+
+import java.util.List;
 
 public interface AttendanceService {
 
     Page<AttendanceResponseDTO> findAttendance(AttendanceSearchDTO searchDTO,
                                                Pageable pageable);
 
-    AttendanceResultDTO saveAttendance(AttendanceRequestDTO requestDTO);
+    ResultDTO saveAttendance(AttendanceRequestDTO requestDTO);
 
-    AttendanceResultDTO updateAttendance(AttendanceRequestDTO requestDTO);
+    ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs);
 
-    AttendanceResultDTO deleteAttendance(Long id);
+    ResultDTO updateAttendance(Long id, AttendanceRequestDTO requestDTO);
+
+    ResultDTO deleteAttendance(Long id);
+
+    ResultDTO deleteAttendanceAll(List<Long> id);
 
 }

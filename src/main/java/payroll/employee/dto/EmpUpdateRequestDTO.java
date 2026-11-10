@@ -30,4 +30,9 @@ public class EmpUpdateRequestDTO {
     private int hourlyWage;
     private String reason;
     private LocalDate effectiveDate;
+    private LocalDate retirementDate;
+    @NotNull(message = "계약 일일근로 시간은 필수 입력값입니다.")
+    private int contractDailyWorkHour;
+    @NotNull(message = "최초 월평균 급여는 필수 입력값입니다.")
+    private int initialMonthlyIncome;
 }

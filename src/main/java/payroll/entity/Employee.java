@@ -3,8 +3,8 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import payroll.employee.dto.EmpRequestDTO;
 import payroll.employee.dto.EmpUpdateRequestDTO;
 
 import java.time.LocalDate;
@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @Table(name="employees")
+@NoArgsConstructor
 public class Employee {
 
     @Id
@@ -48,7 +49,7 @@ public class Employee {
     private LocalDate joiningDate;
 
     @Comment("재직 여부")
-    @Column(name = "delete_yn")
+    @Column(name = "delete_yn", nullable = false, insertable = false)
     private String deleteYn;
 
     @Comment("등록일")
@@ -59,9 +60,21 @@ public class Employee {
     @Column(name = "hourly_wage")
     private int hourlyWage;
 
+    @Comment("퇴사일")
+    @Column(name = "retirement_date")
+    private LocalDate retirementDate;
+
+    @Comment("계약 일일 근로시간")
+    @Column(name = "contract_daily_work_hour")
+    private int contractDailyWorkHour;
+
+    @Comment("최초 월평균 급여")
+    @Column(name = "initial_monthly_income")
+    private int initialMonthlyIncome;
+
     @Builder
-    public Employee(Long deptId, String name, String code, LocalDate birth, String gender,
-                    String rank, LocalDate joiningDate, int hourlyWage){
+    public Employee(Long deptId, String name, String code, LocalDate birth, String gender, String rank, LocalDate joiningDate,
+                    LocalDate retirementDate, int hourlyWage, int contractDailyWorkHour,int initialMonthlyIncome){
         this.deptId = deptId;
         this.name = name;
         this.code = code;
@@ -70,6 +83,9 @@ public class Employee {
         this.rank = rank;
         this.joiningDate = joiningDate;
         this.hourlyWage = hourlyWage;
+        this.retirementDate = retirementDate;
+        this.contractDailyWorkHour = contractDailyWorkHour;
+        this.initialMonthlyIncome = initialMonthlyIncome;
     }
 
     public void update(EmpUpdateRequestDTO request, Long deptId){
@@ -81,6 +97,9 @@ public class Employee {
         this.rank = request.getRank();
         this.joiningDate = request.getJoiningDate();
         this.hourlyWage = request.getHourlyWage();
+        this.retirementDate = request.getRetirementDate();
+        this.contractDailyWorkHour = request.getContractDailyWorkHour();
+        this.initialMonthlyIncome = request.getInitialMonthlyIncome();
     }
 
     public void delete(){

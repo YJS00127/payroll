@@ -2,14 +2,21 @@ package payroll.employee;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import payroll.common.dto.ResultDTO;
 import payroll.employee.dto.*;
+
+import java.util.List;
 
 public interface EmployeeService {
     Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable);
 
-    EmpResultDTO createEmp(EmpRequestDTO requestDTO);
+    ResultDTO createEmp(EmpRequestDTO requestDTO);
 
-    EmpResultDTO updateEmp(EmpUpdateRequestDTO requestDTO);
+    ResultDTO createEmpAll(List<EmpRequestDTO> requestDTOs);
 
-    EmpResultDTO deleteEmp(Long id);
+    ResultDTO updateEmp(EmpUpdateRequestDTO requestDTO);
+
+    ResultDTO deleteEmp(Long id);
+
+    ResultDTO deleteEmpAll(List<Long> id);
 }

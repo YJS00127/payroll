@@ -8,9 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import payroll.common.dto.ResultDTO;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
-import payroll.department.dto.DeptResultDTO;
 import payroll.department.dto.DeptSearchDTO;
 
 @RestController
@@ -21,25 +21,24 @@ public class DepartmentController {
     private final DepartmentService deptService;
 
     @GetMapping
-    public ResponseEntity<Page<DeptResponseDTO>> getAllDepts(@PageableDefault(size=10) Pageable pageable,
-                                                             @RequestBody DeptSearchDTO searchDTO){
-
-        return ResponseEntity.ok(deptService.findAllDepts(searchDTO, pageable));
+    public ResponseEntity<Page<DeptResponseDTO>> getAllDept(@PageableDefault(size=10) Pageable pageable,
+                                                             @ModelAttribute DeptSearchDTO searchDTO){
+        return ResponseEntity.ok(deptService.findAllDept(searchDTO, pageable));
     }
 
     @PostMapping
-    public ResponseEntity<DeptResultDTO> createDept(@RequestBody @Valid DeptRequestDTO request){
+    public ResponseEntity<ResultDTO> createDept(@RequestBody @Valid DeptRequestDTO request){
         return ResponseEntity.ok(deptService.saveDept(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DeptResultDTO> updateDept(@RequestBody @Valid DeptRequestDTO request,
+    public ResponseEntity<ResultDTO> updateDept(@RequestBody @Valid DeptRequestDTO request,
                                                       Long id){
         return ResponseEntity.ok(deptService.updateDept(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<DeptResultDTO> deleteDept(Long id){
+    public ResponseEntity<ResultDTO> deleteDept(Long id){
         return ResponseEntity.ok(deptService.deleteDept(id));
     }
 

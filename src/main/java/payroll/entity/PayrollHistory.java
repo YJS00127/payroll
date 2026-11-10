@@ -133,10 +133,6 @@ public class PayrollHistory {
     @Column(name = "payment_date")
     private LocalDate paymentDate;
 
-    @Comment("삭제여부")
-    @Column(name = "delete_yn")
-    private String deleteYn;
-
     public void update(PayrollHistoryPaymentDTO payment, PayrollHistoryDeductionDTO deduction,
                        int grossSalary, int totalDeduction ,int netSalary){
         // 지급액
@@ -166,9 +162,5 @@ public class PayrollHistory {
         this.totalDeductions = totalDeduction;
         // 실수령액
         this.netSalary = netSalary;
-    }
-
-    public void delete(){
-        this.deleteYn = "Y";
     }
 }

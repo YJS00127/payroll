@@ -29,9 +29,7 @@ public class PayrollRequestDTO {
     @Min(value = 0, message = "기타수당은 음수가 될 수 없습니다.")
     private int otherAllowance;
 
-    @NotNull(message = "평균급여는 필수 입력값입니다.")
-    @Min(value = 0, message = "평균급여는 음수가 될 수 없습니다.")
-    private int averagePayroll;
+
     @Min(value = 0, message = "건강보험정산값은 음수가 될 수 없습니다.")
     private int healthInsuranceAdjustment;
     @Min(value = 0, message = "퇴직정산소득세는 음수가 될 수 없습니다.")

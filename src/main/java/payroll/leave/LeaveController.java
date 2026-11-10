@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import payroll.common.dto.ResultDTO;
 import payroll.leave.dto.LeaveRequestDTO;
 import payroll.leave.dto.LeaveResponseDTO;
-import payroll.leave.dto.LeaveResultDTO;
 import payroll.leave.dto.LeaveSearchDTO;
 
 @RestController
@@ -26,12 +26,12 @@ public class LeaveController {
     }
 
     @PostMapping
-    public ResponseEntity<LeaveResultDTO> insertLeave(@RequestBody @Valid LeaveRequestDTO requestDTO){
+    public ResponseEntity<ResultDTO> insertLeave(@RequestBody @Valid LeaveRequestDTO requestDTO){
         return ResponseEntity.ok(leaveService.insertLeave(requestDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LeaveResultDTO> updateLeave(@RequestBody @Valid LeaveRequestDTO requestDTO,
+    public ResponseEntity<ResultDTO> updateLeave(@RequestBody @Valid LeaveRequestDTO requestDTO,
                                                       Long id){
         return ResponseEntity.ok(leaveService.updateLeave(id, requestDTO));
     }

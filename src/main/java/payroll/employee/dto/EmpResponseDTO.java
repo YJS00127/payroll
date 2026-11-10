@@ -1,9 +1,11 @@
 package payroll.employee.dto;
 
+import lombok.Getter;
 import payroll.entity.Employee;
 
 import java.time.LocalDate;
 
+@Getter
 public class EmpResponseDTO {
     private Long id;
     private String deptCode;

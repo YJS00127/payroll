@@ -9,14 +9,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import payroll.common.dto.ResultDTO;
 import payroll.entity.Employee;
 import payroll.entity.LeaveRecord;
 import payroll.leave.dto.LeaveRequestDTO;
 import payroll.leave.dto.LeaveResponseDTO;
-import payroll.leave.dto.LeaveResultDTO;
 import payroll.leave.dto.LeaveSearchDTO;
 import payroll.repository.EmployeeRepository;
-import payroll.repository.LeaveHistoryRepository;
+import payroll.repository.LeaveRecordRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeaveServiceImpl implements LeaveService{
 
-    private final LeaveHistoryRepository leaveRecordRepository;
+    private final LeaveRecordRepository leaveRecordRepository;
     private final EmployeeRepository employeeRepository;
 
     @Override
@@ -36,7 +36,7 @@ public class LeaveServiceImpl implements LeaveService{
         return leaveRecordRepository.findAll(spec, pageable)
                 .map(leaveRecord -> {
                     Employee emp = employeeRepository.findById(leaveRecord.getEmpId())
-                            .orElseThrow(() -> new EntityNotFoundException("존재하지않는 사원입니다."));
+                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
                     String empCode = emp.getCode();
                     String empName = emp.getName();
 
@@ -46,35 +46,36 @@ public class LeaveServiceImpl implements LeaveService{
 
     @Override
     @Transactional
-    public LeaveResultDTO insertLeave(LeaveRequestDTO requestDTO){
-        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode());
+    public ResultDTO insertLeave(LeaveRequestDTO requestDTO){
+        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
 
         LeaveRecord leaveRecord = requestDTO.toEntity(empId);
 
         leaveRecordRepository.save(leaveRecord);
 
-        return new LeaveResultDTO("success", "휴가 정보 저장 성공");
+        return new ResultDTO("success", "휴가 정보 저장 성공");
     }
 
     @Override
     @Transactional
-    public LeaveResultDTO updateLeave(Long id, LeaveRequestDTO requestDTO){
+    public ResultDTO updateLeave(Long id, LeaveRequestDTO requestDTO){
         LeaveRecord leaveRecord = leaveRecordRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("사원에 대한 휴가 정보가 존재하지 않습니다."));
 
         leaveRecord.update(requestDTO);
 
-        return new LeaveResultDTO("success", "휴가 정보 수정 성공");
+        return new ResultDTO("success", "휴가 정보 수정 성공");
     }
+
 
     public Specification<LeaveRecord> createSpec(LeaveSearchDTO searchDTO){
         return(root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.equal(root.get("deleteYn"), 'N'));
-
             if(StringUtils.hasText(searchDTO.getEmpCode())){
-                Long empId = employeeRepository.findIdByCode(searchDTO.getEmpCode());
+                Long empId = employeeRepository.findIdByCode(searchDTO.getEmpCode())
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
             if(searchDTO.getYear() != null){

@@ -3,6 +3,8 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import payroll.department.dto.DeptRequestDTO;
 
@@ -11,6 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @Table(name="departments")
+@NoArgsConstructor
 public class Department {
 
     @Id
@@ -27,11 +30,12 @@ public class Department {
     private String code;
 
     @Comment("부서 존재 여부")
-    @Column(name="delete_yn")
+    @ColumnDefault("'N'")
+    @Column(name="delete_yn", nullable = false, insertable = false)
     private String deleteYn;
 
     @Comment("부서 등록일")
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false, nullable = false)
     private LocalDate createdAt;
 
     @Comment("부서 생성일")

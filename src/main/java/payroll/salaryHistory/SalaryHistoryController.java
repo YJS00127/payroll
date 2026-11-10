@@ -6,8 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import payroll.common.dto.ResultDTO;
 import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
-import payroll.salaryHistory.dto.SalaryHistoryResultDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
 @RestController
@@ -22,10 +22,8 @@ public class SalaryHistoryController {
         return ResponseEntity.ok(salaryHistoryService.findSalaryHistory(searchDTO, pageable));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<SalaryHistoryResultDTO> deleteSalaryHistory(Long id){
-        return ResponseEntity.ok(salaryHistoryService.deleteSalaryHistory(id));
-    }
-
-
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<ResultDTO> deleteSalaryHistory(Long id){
+//        return ResponseEntity.ok(salaryHistoryService.deleteSalaryHistory(id));
+//    }
 }

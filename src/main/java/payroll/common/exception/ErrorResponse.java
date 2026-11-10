@@ -1,9 +1,11 @@
-package payroll.payroll.dto;
+package payroll.common.exception;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
-public class PayrollResultDTO {
+public class ErrorResponse {
     private String result;
     private String message;
 }

@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import payroll.common.dto.ResultDTO;
 import payroll.payroll.dto.PayrollRequestDTO;
 import payroll.payroll.dto.PayrollResponseDTO;
-import payroll.payroll.dto.PayrollResultDTO;
 import payroll.payroll.dto.PayrollSearchDTO;
 
 @RestController
@@ -25,12 +25,12 @@ public class PayrollController {
     }
 
     @PostMapping
-    public ResponseEntity<PayrollResultDTO> createPayrollHistory(@RequestBody @Valid PayrollRequestDTO requestDTO){
+    public ResponseEntity<ResultDTO> createPayrollHistory(@RequestBody @Valid PayrollRequestDTO requestDTO){
         return ResponseEntity.ok(payrollService.savePayroll(requestDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PayrollResultDTO> updatePayrollHistory(@RequestBody @Valid PayrollRequestDTO requestDTO){
+    public ResponseEntity<ResultDTO> updatePayrollHistory(@RequestBody @Valid PayrollRequestDTO requestDTO){
         return ResponseEntity.ok(payrollService.updatePayroll(requestDTO));
     }
 }

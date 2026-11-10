@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
+import payroll.salaryHistory.dto.SalaryHistoryRequestDTO;
 
 import java.time.LocalDate;
 
@@ -12,12 +13,12 @@ import java.time.LocalDate;
 @Builder
 @Table(name = "salary_history")
 public class SalaryHistory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "salary_history_seq")
     @SequenceGenerator(name = "salary_history_seq", sequenceName = "salary_history_seq", allocationSize = 1)
     private Long id;
 
-    @Comment("사원 ID")
     @Column(name = "emp_id")
     private Long empId;
 
@@ -37,11 +38,10 @@ public class SalaryHistory {
     @Column(name = "reason")
     private String reason;
 
-    @Comment("삭제 여부")
-    @Column(name = "delete_yn")
-    private String deleteYn;
-
-    public void delete(){
-        this.deleteYn = "Y";
+    public void update(SalaryHistoryRequestDTO requestDTO){
+        this.previousHourlyWage = requestDTO.getPreviousHourlyWage();
+        this.newHourlyWage = requestDTO.getNewHourlyWage();
+        this.effectiveDate = requestDTO.getEffectiveDate();
+        this.reason = requestDTO.getReason();
     }
 }

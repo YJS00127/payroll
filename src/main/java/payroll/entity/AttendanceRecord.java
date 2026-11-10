@@ -48,10 +48,6 @@ public class AttendanceRecord {
     @Column(name = "holiday_work_hour")
     private int holidayWorkHour;
 
-    @Comment("근로 정보 삭제 여부")
-    @Column(name = "delete_yn")
-    private String deleteYn;
-
     @Comment("근로 상태")
     @Column(name = "status")
     private String status;
@@ -74,10 +70,6 @@ public class AttendanceRecord {
         this.status = requestDTO.getStatus();
 
         calculateWorkHour(requestDTO.getWorkDate());
-    }
-
-    public void delete(){
-        this.deleteYn = "Y";
     }
 
 

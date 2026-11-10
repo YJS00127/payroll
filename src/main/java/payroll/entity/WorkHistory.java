@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
-import payroll.workHistory.dto.WorkRequestDTO;
 
 @Getter
 @Entity
@@ -44,10 +43,6 @@ public class WorkHistory {
     @Column(name = "weekly_holiday_days")
     private int weeklyHolidayDays;
 
-    @Comment("근로 기록 삭제 여부")
-    @Column(name = "delete_yn")
-    private String deleteYn;
-
     @Builder
     public WorkHistory(Long empId, int year, int month, int totalWorkHour, int workDays,
                        int overtimeWorkHour, int holidayWorkHour, int weeklyHolidayDays) {
@@ -68,16 +63,5 @@ public class WorkHistory {
         this.overtimeWorkHour = overtimeWorkHour;
         this.holidayWorkHour = holidayWorkHour;
         this.weeklyHolidayDays = weeklyHolidayDays;
-    }
-
-    public void delete(){
-        this.deleteYn = "Y";
-    }
-
-    public void addWork(int workDays, int totalWorkHour, int overtimeWorkHour, int holidayWorkHour){
-
-        this.totalWorkHour += totalWorkHour;
-        this.overtimeWorkHour += overtimeWorkHour;
-        this.holidayWorkHour += holidayWorkHour;
     }
 }

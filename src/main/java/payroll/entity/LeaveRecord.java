@@ -8,7 +8,7 @@ import payroll.leave.dto.LeaveRequestDTO;
 
 @Getter
 @Entity
-@Table(name = "leave_records")
+@Table(name = "leave_record")
 public class LeaveRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "leave_record_seq")
@@ -36,10 +36,6 @@ public class LeaveRecord {
     @Column(name = "remaining_leave")
     private int remainingLeave;
 
-    @Comment("삭제 여부")
-    @Column(name = "delete_yn")
-    private String deleteYn;
-
     @Builder
     public LeaveRecord(Long empId, int year, int month){
         this.empId = empId;
@@ -48,12 +44,24 @@ public class LeaveRecord {
     }
 
     public void update(LeaveRequestDTO requestDTO){
+        this.year = requestDTO.getYear();
         this.totalLeave = requestDTO.getTotalLeave();
-//        this.usedLeave = requestDTO.getUsedLeave();
+        this.usedLeave = requestDTO.getUsedLeave();
         this.remainingLeave = this.totalLeave - this.usedLeave;
     }
 
-    public void delete(){
-        this.deleteYn = "Y";
+    public void useLeave(int usedLeave){
+        this.usedLeave += usedLeave;
+        this.remainingLeave = this.remainingLeave - usedLeave;
+    }
+
+    public void updateLeave(int previousUsedDays, int newUsedDays){
+        this.usedLeave = this.usedLeave + previousUsedDays - newUsedDays;
+        this.remainingLeave = this.remainingLeave - previousUsedDays + newUsedDays;
+    }
+
+    public void cancelLeave(int leaveDays){
+        this.usedLeave -= leaveDays;
+        this.totalLeave += leaveDays;
     }
 }

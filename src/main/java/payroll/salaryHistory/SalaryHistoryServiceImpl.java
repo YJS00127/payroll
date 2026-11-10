@@ -9,12 +9,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import payroll.common.dto.ResultDTO;
 import payroll.entity.Employee;
 import payroll.entity.SalaryHistory;
 import payroll.repository.EmployeeRepository;
 import payroll.repository.SalaryHistoryRepository;
+import payroll.salaryHistory.dto.SalaryHistoryRequestDTO;
 import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
-import payroll.salaryHistory.dto.SalaryHistoryResultDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
 import java.time.LocalDate;
@@ -46,8 +47,8 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
 
     @Override
     @Transactional
-    public SalaryHistoryResultDTO saveSalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage,
-                                                    LocalDate effectiveDate, String reason) {
+    public void saveSalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage,
+                                       LocalDate effectiveDate, String reason) {
         SalaryHistory salaryHistory = SalaryHistory.builder()
                 .empId(empId)
                 .previousHourlyWage(previousHourlyWage)
@@ -57,27 +58,35 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
                 .build();
 
         salaryHistoryRepository.save(salaryHistory);
-
-        return new SalaryHistoryResultDTO("success", "급여 변경 이력 저장 성공");
     }
+
     @Override
     @Transactional
-    public SalaryHistoryResultDTO deleteSalaryHistory(Long id){
+    public ResultDTO updateSalaryHistory(Long id, SalaryHistoryRequestDTO requestDTO){
         SalaryHistory salaryHistory = salaryHistoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 기록 정보입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 변경 기록입니다."));
 
-        salaryHistory.delete();
+        salaryHistory.update(requestDTO);
 
-        return new SalaryHistoryResultDTO("success", "급여 기록 삭제 성공");
+        return new ResultDTO("success", "급여 변경 기록 수정 성공");
     }
+
+//    @Override
+//    @Transactional
+//    public ResultDTO deleteSalaryHistory(Long id){
+//        SalaryHistory salaryHistory = salaryHistoryRepository.findById(id)
+//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 변경 기록입니다."));
+//        // 물리 삭제
+//        salaryHistoryRepository.delete(salaryHistory);
+//
+//        return new ResultDTO("success", "급여 변경 기록 삭제 성공");
+//    }
 
 
 
     private Specification<SalaryHistory> createSpec(SalaryHistorySearchDTO searchDTO){
         return(root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            predicates.add(cb.equal(root.get("deleteYn"), 'N'));
 
             if(StringUtils.hasText(searchDTO.getEmpCode())){
                 predicates.add(cb.like(

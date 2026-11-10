@@ -10,15 +10,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import payroll.common.dto.ResultDTO;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
 import payroll.department.dto.DeptSearchDTO;
-import payroll.department.dto.DeptResultDTO;
 import payroll.entity.Department;
 import payroll.repository.DepartmentRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class DepartmentServiceImpl implements DepartmentService{
     private final DepartmentRepository departmentRepository;
 
     @Override
-    public Page<DeptResponseDTO> findAllDepts(DeptSearchDTO searchDTO, Pageable pageable){
+    public Page<DeptResponseDTO> findAllDept(DeptSearchDTO searchDTO, Pageable pageable){
         Specification<Department> spec = createSpec(searchDTO);
 
         return departmentRepository.findAll(spec, pageable)
@@ -36,7 +37,7 @@ public class DepartmentServiceImpl implements DepartmentService{
 
     @Override
     @Transactional
-    public DeptResultDTO saveDept(DeptRequestDTO requestDTO){
+    public ResultDTO saveDept(DeptRequestDTO requestDTO){
         Department department = requestDTO.toEntity();
 
         if(departmentRepository.existsByCode(department.getCode())){
@@ -45,27 +46,42 @@ public class DepartmentServiceImpl implements DepartmentService{
 
         departmentRepository.save(department);
 
-        return new DeptResultDTO("success", "부서 등록 성공");
+        return new ResultDTO("success", "부서 등록 성공");
     }
 
     @Override
     @Transactional
-    public DeptResultDTO updateDept(Long id, DeptRequestDTO requestDTO){
+    public ResultDTO updateDept(Long id, DeptRequestDTO requestDTO){
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다."));
         department.update(requestDTO);
 
-        return new DeptResultDTO("success", "부서 수정 성공");
+        return new ResultDTO("success", "부서 수정 성공");
     }
 
     @Override
     @Transactional
-    public DeptResultDTO deleteDept(Long id){
+    public ResultDTO deleteDept(Long id){
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다."));
         department.delete();
 
-        return new DeptResultDTO("success", "부서 삭제 성공");
+        return new ResultDTO("success", "부서 삭제 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO deleteDeptAll(List<Long> id){
+        List<Department> departments = departmentRepository.findAllById(id);
+
+        if(departments.size() != Set.copyOf(id).size()
+        || departments.stream().anyMatch(dept -> dept.getDeleteYn().equals("Y"))){
+            throw new EntityNotFoundException("존재하지 않는 부서가 포함되어있습니다.");
+        }
+
+        departments.forEach(Department::delete);
+
+        return new ResultDTO("success", "부서 다중 삭제 성공");
     }
 
     private Specification<Department> createSpec(DeptSearchDTO searchDTO){

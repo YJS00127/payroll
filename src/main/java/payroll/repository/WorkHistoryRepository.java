@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import payroll.entity.WorkHistory;
 import payroll.workHistory.dto.WorkResponseDTO;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface WorkHistoryRepository extends JpaRepository<WorkHistory, Long>, JpaSpecificationExecutor<WorkHistory> {
@@ -16,4 +17,6 @@ public interface WorkHistoryRepository extends JpaRepository<WorkHistory, Long>,
     Page<WorkResponseDTO> findAllByEmpId(@Param("empId") Long empId, Pageable pageable);
 
     boolean existsByEmpIdAndYearAndMonth(@Param("empId") Long empId, @Param("year") int year, @Param("month") int month);
+
+    List<WorkHistory> findByEmpIdAndYear(@Param("empId") Long empId, @Param("year") int year);
 }
