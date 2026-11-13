@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class AttendanceSearchDTO {
     @NotBlank
-    private String empCode;
+    private String keyword;
     private Integer year;
     private Integer month;
     private Integer day;

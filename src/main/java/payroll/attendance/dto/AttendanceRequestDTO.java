@@ -21,11 +21,13 @@ public class AttendanceRequestDTO {
     @NotBlank(message = "근로 상태는 필수 입력값입니다.")
     private String status;
 
-    public AttendanceRecord toEntity(Long empId){
+    public AttendanceRecord toEntity(Long empId, int workHour, int overtimeWorkHour, int holidayWorkHour){
         return AttendanceRecord.builder()
                 .empId(empId)
                 .workDate(this.workDate)
-                .workHour()
+                .workHour(workHour)
+                .overtimeWorkHour(overtimeWorkHour)
+                .holidayWorkHour(holidayWorkHour)
                 .checkIn(this.checkIn)
                 .checkOut(this.checkOut)
                 .status(this.status)

@@ -3,6 +3,13 @@ let currentMode = "emp";
 async function changeMode(mode) {
     currentMode = mode;
 
+    document.querySelectorAll(".list-tabs button").forEach(button => {
+        button.classList.toggle(
+            "active",
+            button.dataset.mode === mode
+        );
+    });
+
     const isEmp = mode === "emp";
 
     document.getElementById("employeeList").hidden = !isEmp;

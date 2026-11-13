@@ -11,8 +11,10 @@ import java.util.List;
 
 public interface AttendanceService {
 
-    Page<AttendanceResponseDTO> findAttendance(AttendanceSearchDTO searchDTO,
+    Page<AttendanceResponseDTO> getAttendance(AttendanceSearchDTO searchDTO,
                                                Pageable pageable);
+
+    AttendanceResponseDTO getAttendanceById(Long id);
 
     ResultDTO saveAttendance(AttendanceRequestDTO requestDTO);
 

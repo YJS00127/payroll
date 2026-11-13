@@ -22,9 +22,14 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @GetMapping("/attendance")
-    public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@RequestBody AttendanceSearchDTO searchDTO,
+    public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@ModelAttribute AttendanceSearchDTO searchDTO,
                                                                      @PageableDefault(size=10)Pageable pageable){
-        return ResponseEntity.ok(attendanceService.findAttendance(searchDTO, pageable));
+        return ResponseEntity.ok(attendanceService.getAttendance(searchDTO, pageable));
+    }
+
+    @GetMapping("/attendance/{id}")
+    public ResponseEntity<AttendanceResponseDTO> getAttendanceById(@PathVariable Long id){
+        return ResponseEntity.ok(attendanceService.getAttendanceById(id));
     }
 
     @PostMapping("/attendance")

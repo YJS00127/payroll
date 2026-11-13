@@ -283,6 +283,7 @@ public class PayrollServiceImpl implements PayrollService{
 
         // 기준소득월액
         int nationalPensionBase;
+
         // 국민연금 계산용
         // 국민연금 계산 시 공제율은 1월부터, 기준소득월액은 7월부터 반영
         // 입사일이 전년도 or 전전년도 12월 1일 이후 일 때는 계약시 평균 급여로 계산

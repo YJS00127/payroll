@@ -3,6 +3,7 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.attendance.dto.AttendanceRequestDTO;
 
@@ -14,6 +15,7 @@ import java.time.LocalTime;
 @Getter
 @Entity
 @Table(name = "attendance_record")
+@NoArgsConstructor
 public class AttendanceRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "attendance_record_seq")

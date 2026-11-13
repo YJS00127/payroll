@@ -146,3 +146,29 @@
 .button-delete-add {
     margin-left: auto;
 }
+
+.list-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #71869a;
+}
+
+.list-tabs button {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.list-tabs button:hover {
+    background: #f4f5f6;
+}
+
+.list-tabs button.active {
+    background: #71869a;
+    color: white;
+    font-weight: bold;
+}

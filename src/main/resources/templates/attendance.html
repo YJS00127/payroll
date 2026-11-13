@@ -12,11 +12,11 @@
 <div th:replace="~{fragment/modal::modal}"></div>
 <h1>근태 기록</h1>
 <div class="app">
-    <div id="searchBox"></div>
     <div class="list-tabs">
-        <button type="button" onclick="changeMode('emp')">사원 목록</button>
-        <button type="button" onclick="changeMode('attendance')">근태 목록</button>
+        <button type="button" data-mode="emp" onclick="changeMode('emp')">사원 목록</button>
+        <button type="button" data-mode="attendance" onclick="changeMode('attendance')">근태 목록</button>
     </div>
+    <div id="searchBox"></div>
     <div id="employeeList">
         <div class="list-container">
             <div class="list-header">
@@ -28,6 +28,7 @@
             <tr>
                 <th>사원명</th>
                 <th>사원코드</th>
+                <th>부서명</th>
                 <th>일괄등록/등록</th>
             </tr>
             </thead>
@@ -59,8 +60,8 @@
 </div>
 <div class="pagination"></div>
 <script src="/js/common/modal.js"></script>
-<script src="/js/attendance.js"></script>
 <script src="/js/common/search.js"></script>
 <script src="/js/common/pagination.js"></script>
+<script src="/js/attendance.js"></script>
 </body>
 </html>
