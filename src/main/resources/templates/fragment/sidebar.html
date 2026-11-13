@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="sidebar" class="sidebar">
+    <a th:href="@{/emp}">사원 관리</a>
+    <a th:href="@{/dept}">부서 관리</a>
+    <a th:href="@{/attendance}">근태 관리</a>
+    <a th:href="@{/payroll}">급여 관리</a>
+    <a th:href="@{/leave}">휴가 관리</a>
+</nav>
+</body>
+</html>

@@ -10,8 +10,8 @@ import java.time.LocalDate;
 
 @Getter
 public class EmpRequestDTO {
-    @NotBlank(message = "부서 코드는 필수 입력값입니다.")
-    private String deptCode;
+    @NotBlank(message = "부서명은 필수 입력값입니다.")
+    private String deptName;
     @NotBlank(message = "이름은 필수 입력값입니다.")
     private String name;
     @NotBlank(message = "사원코드는 필수 입력값입니다.")

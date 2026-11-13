@@ -3,43 +3,50 @@ package payroll.department;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import payroll.common.dto.ResultDTO;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
-import payroll.department.dto.DeptSearchDTO;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/dept")
+@RequestMapping("/api")
 public class DepartmentController {
 
     private final DepartmentService deptService;
 
-    @GetMapping
-    public ResponseEntity<Page<DeptResponseDTO>> getAllDept(@PageableDefault(size=10) Pageable pageable,
-                                                             @ModelAttribute DeptSearchDTO searchDTO){
-        return ResponseEntity.ok(deptService.findAllDept(searchDTO, pageable));
+    @GetMapping("/dept")
+    public ResponseEntity<List<DeptResponseDTO>> getAllDept(){
+        return ResponseEntity.ok(deptService.getAllDept());
     }
 
-    @PostMapping
+    @GetMapping("/dept/{id}")
+    public ResponseEntity<DeptResponseDTO> getDeptById(@PathVariable Long id){
+        return ResponseEntity.ok(deptService.getDeptById(id));
+    }
+
+    @PostMapping("/dept")
     public ResponseEntity<ResultDTO> createDept(@RequestBody @Valid DeptRequestDTO request){
         return ResponseEntity.ok(deptService.saveDept(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("dept/{id}")
     public ResponseEntity<ResultDTO> updateDept(@RequestBody @Valid DeptRequestDTO request,
-                                                      Long id){
+                                                @PathVariable Long id){
         return ResponseEntity.ok(deptService.updateDept(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ResultDTO> deleteDept(Long id){
+    @DeleteMapping("/dept/{id}")
+    public ResponseEntity<ResultDTO> deleteDept(@PathVariable Long id){
         return ResponseEntity.ok(deptService.deleteDept(id));
+    }
+
+    @DeleteMapping("/depts")
+    public ResponseEntity<ResultDTO> deleteDeptAll(@RequestBody List<Long> ids){
+        return ResponseEntity.ok(deptService.deleteDeptAll(ids));
     }
 
 }

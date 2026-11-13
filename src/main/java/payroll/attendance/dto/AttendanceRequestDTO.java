@@ -10,7 +10,7 @@ import java.time.LocalTime;
 
 @Getter
 public class AttendanceRequestDTO {
-    @NotBlank(message = "사원코드는 필수 입력값입니다.")
+    private String empName;
     private String empCode;
     @NotNull(message = "근로일은 필수 입력값입니다.")
     private LocalDate workDate;
@@ -25,6 +25,7 @@ public class AttendanceRequestDTO {
         return AttendanceRecord.builder()
                 .empId(empId)
                 .workDate(this.workDate)
+                .workHour()
                 .checkIn(this.checkIn)
                 .checkOut(this.checkOut)
                 .status(this.status)

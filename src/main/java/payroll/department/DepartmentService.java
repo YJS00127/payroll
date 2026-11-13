@@ -1,17 +1,16 @@
 package payroll.department;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import payroll.common.dto.ResultDTO;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
-import payroll.department.dto.DeptSearchDTO;
 
 import java.util.List;
 
 public interface DepartmentService {
 
-    Page<DeptResponseDTO> findAllDept(DeptSearchDTO searchDTO, Pageable pageable);
+    List<DeptResponseDTO> getAllDept();
+
+    DeptResponseDTO getDeptById(Long id);
 
     ResultDTO saveDept(DeptRequestDTO deptRequestDTO);
 
@@ -19,5 +18,5 @@ public interface DepartmentService {
 
     ResultDTO deleteDept(Long id);
 
-    ResultDTO deleteDeptAll(List<Long> id);
+    ResultDTO deleteDeptAll(List<Long> ids);
 }

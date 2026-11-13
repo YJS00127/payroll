@@ -2,22 +2,17 @@ package payroll.department;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import payroll.common.dto.ResultDTO;
+import payroll.common.exception.EmployeeInDepartmentException;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
-import payroll.department.dto.DeptSearchDTO;
 import payroll.entity.Department;
 import payroll.repository.DepartmentRepository;
+import payroll.repository.EmployeeRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -26,13 +21,21 @@ import java.util.Set;
 public class DepartmentServiceImpl implements DepartmentService{
 
     private final DepartmentRepository departmentRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Override
-    public Page<DeptResponseDTO> findAllDept(DeptSearchDTO searchDTO, Pageable pageable){
-        Specification<Department> spec = createSpec(searchDTO);
+    public List<DeptResponseDTO> getAllDept(){
+        return departmentRepository.findAllByDeleteYn("N").stream()
+                .map(DeptResponseDTO::new)
+                .toList();
+    }
 
-        return departmentRepository.findAll(spec, pageable)
-                .map(DeptResponseDTO::new);
+    @Override
+    public DeptResponseDTO getDeptById(Long id){
+        Department dept = departmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
+
+        return new DeptResponseDTO(dept);
     }
 
     @Override
@@ -41,7 +44,7 @@ public class DepartmentServiceImpl implements DepartmentService{
         Department department = requestDTO.toEntity();
 
         if(departmentRepository.existsByCode(department.getCode())){
-            throw new EntityExistsException("해당 코드의 부서가 이미 존재합니다.");
+            throw new EntityExistsException("해당 코드의 부서가 이미 존재합니다");
         }
 
         departmentRepository.save(department);
@@ -53,7 +56,7 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Transactional
     public ResultDTO updateDept(Long id, DeptRequestDTO requestDTO){
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다"));
         department.update(requestDTO);
 
         return new ResultDTO("success", "부서 수정 성공");
@@ -63,7 +66,12 @@ public class DepartmentServiceImpl implements DepartmentService{
     @Transactional
     public ResultDTO deleteDept(Long id){
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다"));
+
+        if(employeeRepository.existsByDeptIdAndDeleteYn(id, "N")){
+            throw new EmployeeInDepartmentException("해당 부서에 재직 중인 사원이 소속돼있어 삭제할 수 없습니다");
+        }
+
         department.delete();
 
         return new ResultDTO("success", "부서 삭제 성공");
@@ -71,48 +79,20 @@ public class DepartmentServiceImpl implements DepartmentService{
 
     @Override
     @Transactional
-    public ResultDTO deleteDeptAll(List<Long> id){
-        List<Department> departments = departmentRepository.findAllById(id);
+    public ResultDTO deleteDeptAll(List<Long> ids){
+        List<Department> departments = departmentRepository.findAllById(ids);
 
-        if(departments.size() != Set.copyOf(id).size()
+        if(departments.size() != Set.copyOf(ids).size()
         || departments.stream().anyMatch(dept -> dept.getDeleteYn().equals("Y"))){
-            throw new EntityNotFoundException("존재하지 않는 부서가 포함되어있습니다.");
+            throw new EntityNotFoundException("존재하지 않는 부서가 포함되어있습니다");
+        }
+
+        if(employeeRepository.existsByDeptIdInAndDeleteYn(ids, "N")){
+            throw new EmployeeInDepartmentException("선택된 부서 중 재직 중인 사원이 소속돼있어 삭제할 수 없습니다");
         }
 
         departments.forEach(Department::delete);
 
-        return new ResultDTO("success", "부서 다중 삭제 성공");
-    }
-
-    private Specification<Department> createSpec(DeptSearchDTO searchDTO){
-        return(root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            predicates.add(cb.equal(root.get("deleteYn"), "N"));
-
-            if(searchDTO.getId() != null){
-                predicates.add(cb.equal(root.get("id"), searchDTO.getId()));
-            }
-
-            if(StringUtils.hasText(searchDTO.getName())){
-                predicates.add(cb.like(
-                        root.get("name"),
-                        "%" + searchDTO.getName() + "%"
-                ));
-            }
-
-            if(StringUtils.hasText(searchDTO.getCode())){
-                predicates.add(cb.like(
-                        root.get("code"),
-                        "%" + searchDTO.getCode() + "%"
-                ));
-            }
-
-            if(searchDTO.getCreatedDeptDate() != null){
-                predicates.add(cb.equal(root.get("createdDeptDate"), searchDTO.getCreatedDeptDate()));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        return new ResultDTO("success", "부서 삭제 성공");
     }
 }

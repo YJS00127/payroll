@@ -53,12 +53,15 @@ public class AttendanceRecord {
     private String status;
 
     @Builder
-    public AttendanceRecord(Long empId, LocalDate workDate, LocalTime checkIn,
-                            LocalTime checkOut, String status){
+    public AttendanceRecord(Long empId, LocalDate workDate, LocalTime checkIn, LocalTime checkOut,
+                            int workHour, int overtimeWorkHour, int holidayWorkHour, String status){
         this.empId = empId;
         this.workDate = workDate;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
+        this.workHour = workHour;
+        this.overtimeWorkHour = overtimeWorkHour;
+        this.holidayWorkHour = holidayWorkHour;
         this.status = status;
     }
 

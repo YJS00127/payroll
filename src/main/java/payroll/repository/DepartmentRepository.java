@@ -12,12 +12,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long>, J
     @Query("SELECT d.name FROM Department d WHERE d.id = :id")
     String findNameById(@Param("id") Long id);
 
-    @Query("SELECT d.id FROM Department d WHERE d.code = :code")
-    Optional<Long> findIdByCode(@Param("code") String code);
-
     boolean existsByCode(@Param("code") String code);
 
-    List<Department> findByCodeIn(@Param("codes") Collection<String> codes);
+    List<Department> findByNameInAndDeleteYn(@Param("names") Collection<String> names, @Param("deleteYn")String deleteYn);
 
+    List<Department> findAllByDeleteYn(@Param("deleteYn")String deleteYn);
 
+    @Query("SELECT d.id FROM Department d WHERE d.name = :name")
+    Optional<Long> findIdByName(@Param("name")String name);
 }

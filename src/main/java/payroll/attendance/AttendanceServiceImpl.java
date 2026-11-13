@@ -20,6 +20,7 @@ import payroll.repository.EmployeeRepository;
 import payroll.workHistory.WorkService;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,11 +55,13 @@ public class AttendanceServiceImpl implements AttendanceService{
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
 
-        AttendanceRecord attendance = requestDTO.toEntity(empId);
-
-        if(attendanceRecordRepository.existsByEmpIdAndWorkDate(empId, attendance.getWorkDate())){
+        if(attendanceRecordRepository.existsByEmpIdAndWorkDate(empId, requestDTO.getWorkDate())){
             throw new EntityExistsException("해당 날짜의 근로 기록이 이미 존재합니다.");
         }
+
+        int workHour = (int) ChronoUnit.HOURS.between(requestDTO.getCheckIn(), requestDTO.getCheckOut())-1;
+
+        AttendanceRecord attendance = requestDTO.toEntity(empId);
 
         attendanceRecordRepository.save(attendance);
 

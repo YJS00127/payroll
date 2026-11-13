@@ -37,10 +37,6 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
     """, nativeQuery = true)
     boolean existsWorkedAttendance(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    boolean existsByEmpIdAndWorkDate(@Param("empId") Set<Long> empId, Set<LocalDate> workDate);
-
-    boolean findByCodeIn(@Param("empCode") Set<String> empCode);
-
     List<AttendanceRecord> findByEmpIdInAndWorkDateIn(Set<Long> empIds, Set<LocalDate> workDates);
 
 

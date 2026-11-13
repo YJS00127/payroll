@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="/js/common/search.js"></script>
+<script src="/js/common/table.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/modal.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>사원 페이지</h1>
+<div class="app">
+    <div id="searchBox"></div>
+    <div class="list-container">
+        <div class="list-header">
+            <span id="totalCount">총 0명</span>
+            <div class="button-delete-add">
+                <button id="deleteSelectedBtn" onclick="delSelectedEmp()">일괄 삭제</button>
+                <button id="addBtn" onclick="addEmp()">등록</button>
+            </div>
+        </div>
+    </div>
+    <table class="list-table">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>사원코드</th>
+            <th>사원명</th>
+            <th>부서</th>
+            <th>직급</th>
+            <th>입사일</th>
+            <th>시급</th>
+            <th>수정/삭제</th>
+        </tr>
+        </thead>
+        <tbody class="employee-list"></tbody>
+    </table>
+</div>
+<div class="pagination"></div>
+<script src="/js/common/pagination.js"></script>
+<script src="/js/common/modal.js"></script>
+<script src="/js/emp.js"></script>
+</body>
+</html>

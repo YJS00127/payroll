@@ -1,0 +1,148 @@
+/* 테이블 전체 */
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: center;
+    background-color: #fff;
+}
+
+/* 테이블 헤더 */
+.list-table thead {
+    background-color: #f3f5f8;
+}
+
+.list-table th {
+    padding: 14px 12px;
+    border-top: 2px solid #64748b;
+    border-bottom: 1px solid #d9dee5;
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 테이블 데이터 */
+.list-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #475569;
+    vertical-align: middle;
+}
+
+/* 마우스 올렸을 때 */
+.list-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* 체크박스 */
+.list-table input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+/* 수정·삭제 버튼 */
+.list-table td button {
+    padding: 6px 12px;
+    margin: 0 3px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #475569;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* 버튼 hover */
+.list-table td button:hover {
+    background-color: #e2e8f0;
+}
+
+/* 첫 번째 버튼: 수정 */
+.list-table td button:first-of-type {
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+/* 두 번째 버튼: 삭제 */
+.list-table td button:last-of-type:not(:first-of-type) {
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* 검색 영역 */
+#searchBox {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* 검색 입력창, 선택창 */
+#searchBox input,
+#searchBox select {
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+/* 공통 버튼 */
+#searchBox button,
+.list-header button {
+    padding: 9px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+}
+
+/* 버튼 hover */
+#searchBox button:hover,
+.list-header button:hover {
+    background: #f1f5f9;
+}
+
+/* 목록 상단 */
+.list-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+/* 검색된 목록 수 */
+#totalCount {
+    margin-right: auto;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* 등록 버튼 */
+#addBtn {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* 일괄 삭제 버튼 */
+#deleteSelectedBtn {
+    color: #dc2626;
+    border-color: #fecaca;
+}
+[hidden] {
+    display: none !important;
+}
+
+.list-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.button-delete-add {
+    margin-left: auto;
+}

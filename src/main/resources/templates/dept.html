@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="/js/common/table.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/modal.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>부서 페이지</h1>
+<div class="app">
+    <div class="list-container">
+        <div class="list-header">
+            <div class="button-delete-add">
+                <button id="deleteSelectedBtn" onclick="delSelectedDept()">일괄 삭제</button>
+                <button id="addBtn" onclick="addDept()">등록</button>
+            </div>
+        </div>
+    </div>
+    <table class="list-table">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>부서명</th>
+            <th>부서코드</th>
+            <th>부서 생성일</th>
+            <th>수정/삭제</th>
+        </tr>
+        </thead>
+        <tbody class="dept-list"></tbody>
+    </table>
+</div>
+<script src="/js/common/modal.js"></script>
+<script src="/js/dept.js"></script>
+</body>
+</html>

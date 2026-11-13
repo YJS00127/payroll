@@ -24,11 +24,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService{
 
-    private final SalaryHistoryService salaryHistoryService;
-
     private final EmployeeRepository employeeRepository;
-    private final LeaveRecordRepository leaveRecordRepository;
     private final DepartmentRepository departmentRepository;
+    private final LeaveRecordRepository leaveRecordRepository;
+    private final SalaryHistoryService salaryHistoryService;
 
     @Override
     public Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable){
@@ -36,17 +35,25 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         return employeeRepository.findAll(spec, pageable)
                 .map(employee -> {
-                    String deptCode = departmentRepository.findById(employee.getDeptId())
-                            .orElseThrow(() -> new EntityNotFoundException("해당하는 부서를 찾을 수 없습니다."))
-                            .getCode();
-                    return new EmpResponseDTO(employee, deptCode);
+                    String deptName = departmentRepository.findNameById(employee.getDeptId());
+                    return new EmpResponseDTO(employee, deptName);
                 });
+    }
+
+    @Override
+    public EmpResponseDTO findEmpById(Long id) {
+        Employee emp =  employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+
+        String deptName = departmentRepository.findNameById(emp.getDeptId());
+
+        return new EmpResponseDTO(emp, deptName);
     }
 
     @Override
     @Transactional
     public ResultDTO createEmp(EmpRequestDTO requestDTO) {
-        Long deptId = departmentRepository.findIdByCode(requestDTO.getDeptCode())
+        Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
         Employee emp = requestDTO.toEntity(deptId);
 
@@ -86,22 +93,22 @@ public class EmployeeServiceImpl implements EmployeeService{
             throw new EntityExistsException("이미 등록된 사원코드가 존재합니다.");
         }
 
-        Set<String> deptCodes = requestDTOs.stream()
-                .map(EmpRequestDTO::getDeptCode)
+        Set<String> deptNames = requestDTOs.stream()
+                .map(EmpRequestDTO::getDeptName)
                 .collect(Collectors.toSet());
 
-        Map<String, Long> deptMap = departmentRepository.findByCodeIn(deptCodes).stream()
+        Map<String, Long> deptMap = departmentRepository.findByNameInAndDeleteYn(deptNames, "N").stream()
                 .collect(Collectors.toMap(
-                        Department::getCode,
+                        Department::getName,
                         Department::getId
                 ));
 
-        if(deptCodes.size() != deptMap.size()){
+        if(deptNames.size() != deptMap.size()){
             throw new EntityNotFoundException("존재하지 않는 부서가 포함되어있습니다.");
         }
 
         List<Employee> employees = requestDTOs.stream()
-                .map(dto -> dto.toEntity(deptMap.get(dto.getDeptCode())))
+                .map(dto -> dto.toEntity(deptMap.get(dto.getDeptName())))
                 .toList();
 
         List<Employee> saved = employeeRepository.saveAll(employees);
@@ -116,16 +123,16 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         leaveRecordRepository.saveAll(leaves);
 
-        return new ResultDTO("success", "사원 다중 등록 성공");
+        return new ResultDTO("success", "사원 등록 성공");
     }
 
     @Override
     @Transactional
-    public ResultDTO updateEmp(EmpUpdateRequestDTO requestDTO){
-        Long deptId = departmentRepository.findIdByCode(requestDTO.getDeptCode())
+    public ResultDTO updateEmp(Long id, EmpUpdateRequestDTO requestDTO){
+        Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
 
-        Employee emp = employeeRepository.findByCode(requestDTO.getCode())
+        Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
         // 변경 전, 후 급여
         int previousHourlyWage = emp.getHourlyWage();
@@ -186,23 +193,19 @@ public class EmployeeServiceImpl implements EmployeeService{
 
             predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
-            if(StringUtils.hasText(searchDTO.getDeptCode())){
-                Long deptId = departmentRepository.findIdByCode(searchDTO.getDeptCode())
-                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+            if(StringUtils.hasText(searchDTO.getDeptName())){
+                Long deptId = departmentRepository.findIdByName(searchDTO.getDeptName())
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
                 predicates.add(cb.equal(root.get("deptId"), deptId));
             }
 
-            if(StringUtils.hasText(searchDTO.getName())){
-                predicates.add(cb.like(
-                        root.get("name"),
-                        "%" + searchDTO.getName() + "%"
-                ));
-            }
+            if(StringUtils.hasText(searchDTO.getKeyword())){
 
-            if(StringUtils.hasText(searchDTO.getCode())){
-                predicates.add(cb.like(
-                        root.get("code"),
-                        "%" + searchDTO.getCode() + "%"
+                String keyword = searchDTO.getKeyword().trim() + "%";
+
+                predicates.add(cb.or(
+                        cb.like(root.get("name"), keyword),
+                        cb.like(root.get("code"), keyword)
                 ));
             }
 
@@ -211,10 +214,6 @@ public class EmployeeServiceImpl implements EmployeeService{
                         root.get("rank"),
                         "%" + searchDTO.getRank() + "%"
                 ));
-            }
-
-            if(searchDTO.getJoiningDate() != null){
-                predicates.add(cb.equal(root.get("joiningDate"), searchDTO.getJoiningDate()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

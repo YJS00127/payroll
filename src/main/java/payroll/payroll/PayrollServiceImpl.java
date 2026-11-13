@@ -225,8 +225,8 @@ public class PayrollServiceImpl implements PayrollService{
                     int normalHour = Math.min(hour, 8);
                     int overtimeHour = Math.max(hour-8, 0);
 
-                    return (int)(normalHour * hourlyWage * 1.5) +
-                            (overtimeHour * hourlyWage * 2);
+                    return (int)(normalHour * hourlyWage * 2.5) +
+                            (overtimeHour * hourlyWage * 3);
                 }).sum();
 
         return PayrollHistoryPaymentDTO.builder()

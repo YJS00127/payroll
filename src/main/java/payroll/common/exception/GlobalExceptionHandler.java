@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerIllegalArgumentException(
             IllegalArgumentException e) {
 
-        log.error("400 Bad Request 요청 데이터 이상", e);
+        log.error("400 Bad Request : 요청 데이터 이상", e);
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerEntityNotFoundException(
             EntityExistsException e){
 
-        log.error("404 Not Found Entity Not Found", e);
+        log.error("404 Not Found : Entity Not Found", e);
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(
             MethodArgumentNotValidException e){
 
-        log.error("400 Bad Request 입력값 검증 실패", e);
+        log.error("400 Bad Request : 입력값 검증 실패", e);
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerHttpMessageNotReadableException(
             HttpMessageNotReadableException e){
 
-        log.error("400 Bad Request DTO변환 이상", e);
+        log.error("400 Bad Request : DTO변환 이상", e);
         ErrorResponse response = new ErrorResponse("fail", "잘못된 요청입니다.");
         return ResponseEntity.badRequest().body(response);
     }
@@ -70,6 +70,15 @@ public class GlobalExceptionHandler {
 
         log.error("DB제약조건 위반", e);
         ErrorResponse response = new ErrorResponse("fail", "DB 제약조건 위반");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(EmployeeInDepartmentException.class)
+    public ResponseEntity<ErrorResponse> handlerEmployeeInDepartmentException(
+            EmployeeInDepartmentException e){
+
+        log.error("409 Conflict : 삭제되지 않은 사원이 포함된 부서 삭제 시도");
+        ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 

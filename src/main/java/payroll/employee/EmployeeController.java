@@ -26,6 +26,11 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.findAllEmp(searchDTO, pageable));
     }
 
+    @GetMapping("/emp/{id}")
+    public ResponseEntity<EmpResponseDTO> getEmpById(@PathVariable Long id){
+        return ResponseEntity.ok(employeeService.findEmpById(id));
+    }
+
     @PostMapping("/emp")
     public ResponseEntity<ResultDTO> createEmp(@RequestBody @Valid EmpRequestDTO requestDTO){
         return ResponseEntity.ok(employeeService.createEmp(requestDTO));
@@ -37,12 +42,13 @@ public class EmployeeController {
     }
 
     @PutMapping("/emp/{id}")
-    public ResponseEntity<ResultDTO> updateEmp(@RequestBody @Valid EmpUpdateRequestDTO requestDTO){
-        return ResponseEntity.ok(employeeService.updateEmp(requestDTO));
+    public ResponseEntity<ResultDTO> updateEmp(@PathVariable Long id,
+                                               @RequestBody @Valid EmpUpdateRequestDTO requestDTO){
+        return ResponseEntity.ok(employeeService.updateEmp(id, requestDTO));
     }
 
     @DeleteMapping("/emp/{id}")
-    public ResponseEntity<ResultDTO> deleteEmp(Long id){
+    public ResponseEntity<ResultDTO> deleteEmp(@PathVariable Long id){
         return ResponseEntity.ok(employeeService.deleteEmp(id));
     }
 

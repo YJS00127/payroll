@@ -1,14 +1,12 @@
 package payroll.employee.dto;
 
 import lombok.Getter;
-
-import java.time.LocalDate;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class EmpSearchDTO {
-    private String deptCode;
-    private String name;
-    private String code;
+    private String deptName;
+    private String keyword;
     private String rank;
-    private LocalDate joiningDate;
 }

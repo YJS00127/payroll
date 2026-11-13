@@ -93,7 +93,7 @@ public class Employee {
         this.name = request.getName();
         this.code = request.getCode();
         this.birth = request.getBirth();
-        this.gender = request.getCode();
+        this.gender = request.getGender();
         this.rank = request.getRank();
         this.joiningDate = request.getJoiningDate();
         this.hourlyWage = request.getHourlyWage();
