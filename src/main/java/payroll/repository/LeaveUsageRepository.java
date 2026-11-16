@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import payroll.entity.LeaveUsage;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface LeaveUsageRepository extends JpaRepository<LeaveUsage, Long>, JpaSpecificationExecutor<LeaveUsage> {
@@ -24,5 +25,13 @@ public interface LeaveUsageRepository extends JpaRepository<LeaveUsage, Long>, J
 
     Optional<LeaveUsage> findByIdAndDeleteYn(@Param("id") Long id, @Param("deleteYn") String deleteYn);
 
-    Long findEmpIdById(@Param("id") Long id);
+    @Query(value = """
+    SELECT l FROM leave_usage l
+    WHERE l.emp_id = :empId AND
+        l.start_date <= :end AND
+        l.end_date >= :startDate AND
+        l.delete_yn = 'N'
+    """, nativeQuery = true)
+    List<LeaveUsage> findByEmpIdAndPeriod(@Param("empId")Long empId, @Param("start") LocalDate start,
+                                          @Param("end") LocalDate end);
 }

@@ -12,18 +12,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import payroll.common.dto.ResultDTO;
 import payroll.entity.*;
+import payroll.holiday.HolidayService;
 import payroll.payroll.dto.*;
 import payroll.repository.*;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PayrollServiceImpl implements PayrollService{
+public class PayrollServiceImpl implements PayrollService {
 
     private final PayrollHistoryRepository payrollHistoryRepository;
     private final EmployeeRepository employeeRepository;
@@ -32,10 +36,12 @@ public class PayrollServiceImpl implements PayrollService{
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final DepartmentRepository departmentRepository;
     private final InsuranceRateHistoryRepository insuranceRateHistoryRepository;
+    private final LeaveUsageRepository leaveUsageRepository;
+    private final HolidayService holidayService;
 
     @Override
     public Page<PayrollResponseDTO> findPayroll(PayrollSearchDTO searchDTO,
-                                                Pageable pageable){
+                                                Pageable pageable) {
         Specification<PayrollHistory> spec = createSpec(searchDTO);
 
         return payrollHistoryRepository.findAll(spec, pageable)
@@ -54,10 +60,10 @@ public class PayrollServiceImpl implements PayrollService{
 
     @Override
     @Transactional
-    public ResultDTO savePayroll(PayrollRequestDTO requestDTO){
+    public ResultDTO savePayroll(PayrollRequestDTO requestDTO) {
         Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
-        if(payrollHistoryRepository.existsByEmpIdAndYearAndMonth(emp.getId(), requestDTO.getYear(), requestDTO.getMonth())){
+        if (payrollHistoryRepository.existsByEmpIdAndYearAndMonth(emp.getId(), requestDTO.getYear(), requestDTO.getMonth())) {
             throw new EntityExistsException("해당 날짜의 사원 급여 기록이 이미 존재합니다.");
         }
 
@@ -68,7 +74,7 @@ public class PayrollServiceImpl implements PayrollService{
 
         LocalDate startDate = endDate.plusDays(1).minusMonths(1);
 
-        if(resignationDate != null && startDate.isAfter(resignationDate)) {
+        if (resignationDate != null && startDate.isAfter(resignationDate)) {
             throw new IllegalArgumentException("퇴사 이후의 급여는 생성할 수 없습니다.");
         }
         int hourlyWage = emp.getHourlyWage();
@@ -84,19 +90,19 @@ public class PayrollServiceImpl implements PayrollService{
         int netSalary = grossSalary - totalDeduction;
 
         PayrollHistory payroll = PayrollHistory.builder()
-                .empId(emp.getId()) .hourlyWage(hourlyWage)
-                .basicSalary(payment.getBasicSalary()) .weeklyHolidayPay(payment.getWeeklyHolidayPay())
-                .retroactivePay(payment.getRetroactivePay()) .deductionAmount(payment.getDeductionAmount())
-                .monthlyHolidayPay(payment.getMonthlyLeavePay()) .mealAllowance(payment.getMealAllowance())
-                .overtimePay(payment.getOverTimePay()) .unpaidAllowance(payment.getUnpaidAllowance())
-                .unpaidAllowanceReason(payment.getUnpaidAllowanceReason()) .otherAllowance(payment.getOtherAllowance())
+                .empId(emp.getId()).hourlyWage(hourlyWage)
+                .basicSalary(payment.getBasicSalary()).weeklyHolidayPay(payment.getWeeklyHolidayPay())
+                .retroactivePay(payment.getRetroactivePay()).deductionAmount(payment.getDeductionAmount())
+                .monthlyHolidayPay(payment.getMonthlyLeavePay()).mealAllowance(payment.getMealAllowance())
+                .overtimePay(payment.getOverTimePay()).unpaidAllowance(payment.getUnpaidAllowance())
+                .unpaidAllowanceReason(payment.getUnpaidAllowanceReason()).otherAllowance(payment.getOtherAllowance())
                 .holidayWorkPay(payment.getHolidayWorkPay())
-                .nationalPension(deduction.getNationalPension()) .healthInsurance(deduction.getHealthInsurance())
-                .longTermCareInsurance(deduction.getLongTermCareInsurance()) .employmentInsurance(deduction.getEmploymentInsurance())
-                .healthInsuranceAdjustment(deduction.getHealthInsuranceAdjustment()) .longTermCareAdjustment(deduction.getLongTermCareAdjustment())
-                .retirementIncomeTax(deduction.getRetirementIncomeTax()) .retirementLocalIncomeTax(deduction.getRetirementLocalIncomeTax())
-                .incomeTax(deduction.getIncomeTax()) .localIncomeTax(deduction.getLocalIncomeTax())
-                .grossSalary(grossSalary) .totalDeductions(totalDeduction).netSalary(netSalary)
+                .nationalPension(deduction.getNationalPension()).healthInsurance(deduction.getHealthInsurance())
+                .longTermCareInsurance(deduction.getLongTermCareInsurance()).employmentInsurance(deduction.getEmploymentInsurance())
+                .healthInsuranceAdjustment(deduction.getHealthInsuranceAdjustment()).longTermCareAdjustment(deduction.getLongTermCareAdjustment())
+                .retirementIncomeTax(deduction.getRetirementIncomeTax()).retirementLocalIncomeTax(deduction.getRetirementLocalIncomeTax())
+                .incomeTax(deduction.getIncomeTax()).localIncomeTax(deduction.getLocalIncomeTax())
+                .grossSalary(grossSalary).totalDeductions(totalDeduction).netSalary(netSalary)
                 .year(requestDTO.getYear()).month(requestDTO.getMonth())
                 .build();
 
@@ -107,7 +113,7 @@ public class PayrollServiceImpl implements PayrollService{
 
     @Override
     @Transactional
-    public ResultDTO updatePayroll(PayrollRequestDTO requestDTO){
+    public ResultDTO updatePayroll(PayrollRequestDTO requestDTO) {
         Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
 
@@ -123,28 +129,28 @@ public class PayrollServiceImpl implements PayrollService{
         int netSalary = grossSalary - totalDeduction;
 
         PayrollHistory payrollHistory = payrollHistoryRepository.findByEmpIdAndYearAndMonth(empId, requestDTO.getYear(), requestDTO.getMonth())
-                        .orElseThrow(() -> new EntityNotFoundException("급여 기록을 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("급여 기록을 찾을 수 없습니다."));
 
         payrollHistory.update(payment, deduction, grossSalary, totalDeduction, netSalary);
 
         return new ResultDTO("success", "급여 정보 수정 성공");
     }
 
-    private Specification<PayrollHistory> createSpec(PayrollSearchDTO searchDTO){
-        return(root, query, cb) -> {
+    private Specification<PayrollHistory> createSpec(PayrollSearchDTO searchDTO) {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(StringUtils.hasText(searchDTO.getEmpCode())){
+            if (StringUtils.hasText(searchDTO.getEmpCode())) {
                 Long empId = employeeRepository.findIdByCode(searchDTO.getEmpCode())
                         .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
 
-            if(searchDTO.getYear() != null){
+            if (searchDTO.getYear() != null) {
                 predicates.add(cb.equal(root.get("year"), searchDTO.getYear()));
             }
 
-            if(searchDTO.getMonth() != null){
+            if (searchDTO.getMonth() != null) {
                 predicates.add(cb.equal(root.get("month"), searchDTO.getMonth()));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -152,7 +158,7 @@ public class PayrollServiceImpl implements PayrollService{
     }
 
     // 지급항목 계산
-    private PayrollHistoryPaymentDTO calculatePayment(PayrollRequestDTO requestDTO, Employee emp){
+    private PayrollHistoryPaymentDTO calculatePayment(PayrollRequestDTO requestDTO, Employee emp) {
         Long empId = emp.getId();
 
         int year = requestDTO.getYear();
@@ -160,7 +166,7 @@ public class PayrollServiceImpl implements PayrollService{
         LocalDate end = LocalDate.of(year, month, 14);
         LocalDate start = end.plusDays(1).minusMonths(1);
 
-        // 특정 사원의 특정 달 근로 정보 (총 근로시간, 총 근로일, 주차일수, 주차시간 등)
+        // 특정 사원의 특정h 달 근로 정보 (총 근로시간, 총 근로일, 주차일수, 주차시간 등)
         WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(empId, year, month)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 근무기록입니다."));
 
@@ -174,8 +180,47 @@ public class PayrollServiceImpl implements PayrollService{
 
         LocalDate joiningDate = emp.getJoiningDate();
 
+        int holidayHour = 0;
+        int leaveHour = 0;
+
+        JsonNode holidays = holidayService.getHolidays(year, month)
+                .path("response")
+                .path("body")
+                .path("items")
+                .path("item");
+
+        // 공휴일 존재할 시 공휴일만큼의 기본급 추가
+        for(JsonNode holiday : holidays) {
+            LocalDate holidayDate = LocalDate.parse(
+                    holiday.path("locdate").asString(),
+                    DateTimeFormatter.BASIC_ISO_DATE
+            );
+
+            if (holidayDate.getDayOfWeek() != DayOfWeek.SATURDAY &&
+                    holidayDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
+                holidayHour += emp.getContractDailyWorkHour();
+            }
+        }
+
+        List<LeaveUsage> leaves = leaveUsageRepository.findByEmpIdAndPeriod(empId, start, end);
+
+        for (LeaveUsage leave : leaves) {
+            LocalDate from = leave.getStartDate().isBefore(start)
+                    ? start : leave.getStartDate();
+
+            LocalDate to = leave.getEndDate().isAfter(end)
+                    ? end : leave.getEndDate();
+
+            leaveHour = (int) (leaveHour + from.datesUntil(to.plusDays(1))
+                    .filter(date -> date.getDayOfWeek() != DayOfWeek.SATURDAY)
+                    .filter(date -> date.getDayOfWeek() != DayOfWeek.SUNDAY)
+                    .filter(date -> !holidayService.isHoliday(date))
+                    .count() * emp.getContractDailyWorkHour());
+        }
+
+
         // 기본급
-        int basicSalary = totalWorkHour * hourlyWage;
+        int basicSalary = (totalWorkHour + holidayHour + leaveHour) * hourlyWage;
         // 주차수당
         int weeklyHolidayPay = weeklyHolidayDays * hourlyWage * contractDailyHour;
         // 전월소급분
@@ -200,7 +245,7 @@ public class PayrollServiceImpl implements PayrollService{
             int remainingLeave = leaveRecordRepository.sumRemainingLeave(empId, joiningDate.getYear(), oneYearDate.getYear());
 
             monthlyLeavePay = remainingLeave * hourlyWage * contractDailyHour;
-        } else if (month == 1 && year > joiningDate.getYear() + 1){
+        } else if (month == 1 && year > joiningDate.getYear() + 1) {
             int remainingLeave = leaveRecordRepository.findRemainingLeaveByEmpIdAndYear(empId, year - 1);
             monthlyLeavePay = remainingLeave * hourlyWage * contractDailyHour;
         }
@@ -223,9 +268,9 @@ public class PayrollServiceImpl implements PayrollService{
                     int hour = wh.getHolidayWorkHour();
 
                     int normalHour = Math.min(hour, 8);
-                    int overtimeHour = Math.max(hour-8, 0);
+                    int overtimeHour = Math.max(hour - 8, 0);
 
-                    return (int)(normalHour * hourlyWage * 2.5) +
+                    return (int) (normalHour * hourlyWage * 2.5) +
                             (overtimeHour * hourlyWage * 3);
                 }).sum();
 
@@ -244,17 +289,17 @@ public class PayrollServiceImpl implements PayrollService{
     }
 
     // 미지급수당 사유 검증
-    private void validUnpaidAllowance(int unpaidAllowance, String reason){
-        if(unpaidAllowance == 0 && StringUtils.hasText(reason)){
+    private void validUnpaidAllowance(int unpaidAllowance, String reason) {
+        if (unpaidAllowance == 0 && StringUtils.hasText(reason)) {
             throw new IllegalArgumentException("미지급 수당이 없으면 사유 입력이 불가능합니다.");
         }
-        if(unpaidAllowance > 0 && !StringUtils.hasText(reason)){
+        if (unpaidAllowance > 0 && !StringUtils.hasText(reason)) {
             throw new IllegalArgumentException("미지급 수당 사유를 입력해주세요.");
         }
     }
 
     // 공제항목 계산
-    private PayrollHistoryDeductionDTO calculateDeduction(PayrollRequestDTO requestDTO, int grossSalary, Employee emp){
+    private PayrollHistoryDeductionDTO calculateDeduction(PayrollRequestDTO requestDTO, int grossSalary, Employee emp) {
         LocalDate date = LocalDate.of(requestDTO.getYear(), requestDTO.getMonth(), 15);
 
         InsuranceRateHistory insuranceRate = insuranceRateHistoryRepository.findInsuranceRate(date)
@@ -279,7 +324,7 @@ public class PayrollServiceImpl implements PayrollService{
         int requestMonth = requestDTO.getMonth();
 
         // 기준소득월액 기준 연도
-        int nationalPensionBaseYear = requestDTO.getMonth() >= 7 ? requestYear-1 : requestYear -2;
+        int nationalPensionBaseYear = requestDTO.getMonth() >= 7 ? requestYear - 1 : requestYear - 2;
 
         // 기준소득월액
         int nationalPensionBase;
@@ -287,9 +332,9 @@ public class PayrollServiceImpl implements PayrollService{
         // 국민연금 계산용
         // 국민연금 계산 시 공제율은 1월부터, 기준소득월액은 7월부터 반영
         // 입사일이 전년도 or 전전년도 12월 1일 이후 일 때는 계약시 평균 급여로 계산
-        if(joiningDate.isAfter(LocalDate.of(nationalPensionBaseYear, 12, 1))) {
+        if (joiningDate.isAfter(LocalDate.of(nationalPensionBaseYear, 12, 1))) {
             nationalPensionBase = emp.getInitialMonthlyIncome();
-        } else{
+        } else {
             // 기준 연도 총소득액
             int totalSalary = payrollHistoryRepository.sumYearGrossSalary(empId, nationalPensionBaseYear)
                     .orElseThrow(() -> new EntityNotFoundException("해당 연도의 급여 기록이 없습니다."));
@@ -306,17 +351,17 @@ public class PayrollServiceImpl implements PayrollService{
                     LocalDate.of(nationalPensionBaseYear, 12, 31).plusDays(1)
             );
             // 기준소득월액 (1000원 미만 절사)
-            nationalPensionBase = (int)(((long) totalSalary * 30 / baseYearDays) / 1000 * 1000);
+            nationalPensionBase = (int) (((long) totalSalary * 30 / baseYearDays) / 1000 * 1000);
         }
 
         // 건강보험 계산
-        int healthBaseYear = requestDTO.getMonth() >= 4 ? requestYear-1 : requestYear-2;
+        int healthBaseYear = requestDTO.getMonth() >= 4 ? requestYear - 1 : requestYear - 2;
         int healthInsuranceBase = calculateHealthInsurance(empId, healthBaseYear, joiningDate, emp);
 
         // 건강보험정산
         int healthAdjustment;
 
-        if(requestMonth == 4){
+        if (requestMonth == 4) {
             healthAdjustment = calculateHealthAdjustment(empId, requestYear - 1, joiningDate, emp);
         } else {
             healthAdjustment = 0;
@@ -359,7 +404,7 @@ public class PayrollServiceImpl implements PayrollService{
     }
 
     // 공제액 계산 10원 미만 삭제
-    private int floorUnderTen(int amount, BigDecimal rate){
+    private int floorUnderTen(int amount, BigDecimal rate) {
         rate = rate.divide(BigDecimal.valueOf(100));
         return BigDecimal.valueOf(amount)
                 .multiply(rate)
@@ -368,12 +413,12 @@ public class PayrollServiceImpl implements PayrollService{
     }
 
     // 건강보험 계산 함수
-    private int calculateHealthInsurance(Long empId, int healthBaseYear, LocalDate joiningDate, Employee emp){
+    private int calculateHealthInsurance(Long empId, int healthBaseYear, LocalDate joiningDate, Employee emp) {
         int healthInsuranceBase;
 
-        if(joiningDate.isAfter(LocalDate.of(healthBaseYear, 12, 1))) {
+        if (joiningDate.isAfter(LocalDate.of(healthBaseYear, 12, 1))) {
             healthInsuranceBase = emp.getInitialMonthlyIncome();
-        } else{
+        } else {
             int totalSalary = payrollHistoryRepository.sumYearGrossSalary(empId, healthBaseYear)
                     .orElseThrow(() -> new EntityNotFoundException("해당 연도의 급여 기록이 없습니다."));
 
@@ -388,7 +433,7 @@ public class PayrollServiceImpl implements PayrollService{
             LocalDate workEnd = retirementDate != null && retirementDate.isBefore(yearEnd)
                     ? retirementDate : yearEnd;
 
-            if(workStart.isAfter(workEnd)){
+            if (workStart.isAfter(workEnd)) {
                 throw new IllegalArgumentException("해당 연도의 근무 기록이 없습니다.");
             }
 
@@ -398,16 +443,16 @@ public class PayrollServiceImpl implements PayrollService{
         return healthInsuranceBase;
     }
 
-    private int calculateHealthAdjustment(Long empId, int previousYear, LocalDate joiningDate, Employee emp){
+    private int calculateHealthAdjustment(Long empId, int previousYear, LocalDate joiningDate, Employee emp) {
         // 보험금 부과 시작일
         LocalDate insuranceStart = joiningDate.getDayOfMonth() == 1 ? joiningDate : joiningDate.plusMonths(1).withDayOfMonth(1);
 
         LocalDate startYear = LocalDate.of(previousYear, 1, 1);
         LocalDate endYear = LocalDate.of(previousYear, 12, 31);
 
-        if(insuranceStart.isBefore(startYear)){
+        if (insuranceStart.isBefore(startYear)) {
             insuranceStart = startYear;
-        } else if(insuranceStart.isAfter(endYear)){
+        } else if (insuranceStart.isAfter(endYear)) {
             return 0;
         }
 
@@ -416,7 +461,7 @@ public class PayrollServiceImpl implements PayrollService{
         LocalDate insuranceEnd = retirementDate != null && !retirementDate.isAfter(endYear)
                 ? retirementDate.minusDays(1) : endYear;
 
-        if(insuranceStart.isAfter(insuranceEnd)){
+        if (insuranceStart.isAfter(insuranceEnd)) {
             return 0;
         }
 

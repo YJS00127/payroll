@@ -9,8 +9,8 @@ async function loadDeptData() {
         {name: "code"},
         {name: "createdDeptDate"},
         {
-            type: "buttons",
-            button: [
+            type: "button",
+            buttons: [
                 {label: "수정", onClick: dept => editDept(dept)},
                 {label: "삭제", onClick: dept => delDept(dept)}
             ]

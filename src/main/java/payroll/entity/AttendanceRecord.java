@@ -11,6 +11,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 @Getter
 @Entity
@@ -67,33 +68,15 @@ public class AttendanceRecord {
         this.status = status;
     }
 
-    public void update(AttendanceRequestDTO requestDTO, Long empId){
+    public void update(AttendanceRequestDTO requestDTO, Long empId,
+                       int workHour, int overtimeWorkHour, int holidayWorkHour) {
         this.empId = empId;
         this.workDate = requestDTO.getWorkDate();
         this.checkIn = requestDTO.getCheckIn();
         this.checkOut = requestDTO.getCheckOut();
         this.status = requestDTO.getStatus();
-
-        calculateWorkHour(requestDTO.getWorkDate());
-    }
-
-
-    // 근로 시간 정보 저장 (일일 근로 시간, 연장 근로 시간, 휴일 근로 시간)
-    private void calculateWorkHour(LocalDate workDate){
-        // 특정 날짜 요일 저장
-        DayOfWeek dayOfWeek = workDate.getDayOfWeek();
-
-        // 일일 총 근로 시간
-        int dailyWorkHour = (int) Duration.between(
-                checkIn, checkOut
-        ).toHours() - 1;
-
-        // 주말이 아닐 시 일일 근로 시간, 연장근로 시간 저장 / 주말일 시 휴일 근로 시간 저장
-        if(dayOfWeek.getValue() != 6 && dayOfWeek.getValue() != 7){
-            this.overtimeWorkHour = Math.max(0, dailyWorkHour - 8);
-            this.workHour = dailyWorkHour - overtimeWorkHour;
-        } else {
-            this.holidayWorkHour = dailyWorkHour;
-        }
+        this.workHour = workHour;
+        this.overtimeWorkHour = overtimeWorkHour;
+        this.holidayWorkHour = holidayWorkHour;
     }
 }

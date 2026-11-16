@@ -16,10 +16,10 @@ async function loadEmpData(page=0, params = new URLSearchParams()) {
         {name: "joiningDate"},
         {name: "hourlyWage"},
         {
-            type: "buttons",
-            button: [
+            type: "button",
+            buttons: [
                 {label: "수정", onClick: emp => editEmp(emp)},
-                {label: "삭제", onClick: emp => delEmp(emp)}
+                {label: "삭제", onClick: emp => delEmp(emp.id)}
             ]
         }
     ]);
@@ -107,8 +107,8 @@ async function saveEmp(data){
 
 // 사원 수정 팝업
 async function editEmp(emp) {
-    const res = await fetch(`/api/emp/${emp.id}`);
-    const empData = await res.json();
+    const response = await fetch(`/api/emp/${emp.id}`);
+    const empData = await response.json();
     openModal( {
         title: "사원 수정",
         fields: [
@@ -222,8 +222,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("selectAll").addEventListener("change", function () {
         const checkboxes = document.querySelectorAll(".emp-checkbox");
 
-        checkboxes.forEach(checkboxes => {
-            checkboxes.checked = this.checked;
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
         })
     })
     // 모든 행 선택 시 전체 선택 활성화, 하나라도 해제 시 전체 선택 취소

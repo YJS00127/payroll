@@ -1,4 +1,5 @@
 let currentMode = "emp";
+let searchParams = new URLSearchParams();
 
 async function changeMode(mode) {
     currentMode = mode;
@@ -16,12 +17,6 @@ async function changeMode(mode) {
     document.getElementById("attendanceList").hidden = isEmp;
 
     await loadSearchBox();
-
-    if(isEmp){
-        await loadEmpData();
-    } else{
-        await loadAttendanceData();
-    }
 }
 
 async function loadSearchBox(){
@@ -52,8 +47,8 @@ async function loadSearchBox(){
 }
 
 // 사원 데이터
-async function loadEmpData(page = 0, params = new URLSearchParams()){
-    const searchParams = new URLSearchParams(params);
+async function loadEmpData(page = 0, params = searchParams){
+    searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
     const empResponse = await fetch(`/api/emp?${searchParams.toString()}`);
@@ -75,11 +70,11 @@ async function loadEmpData(page = 0, params = new URLSearchParams()){
     document.getElementById("totalEmpCount").textContent =
         `총 ${pageData.totalElements}명`;
 
-    createPagination(pageData, nextPage => loadEmpData(nextPage, params));
+    createPagination(pageData, nextPage => loadEmpData(page=0, nextPage));
 }
 
 const statusOptions = [
-    {value: "근무", label: "근무"},
+    {value: "출근", label: "출근"},
     {value: "지각", label: "지각"},
     {value: "결근", label: "결근"},
     {value: "휴가", label: "휴가"},
@@ -104,7 +99,7 @@ async function addAttendance(emp){
         ],
         values: {
             workDate: new Date().toLocaleDateString("sv-SE"),
-            status: "근무",
+            status: "출근",
             checkIn: "09:00",
             checkOut: "18:00",
         },
@@ -127,19 +122,23 @@ async function saveAttendance(data){
     const result = await response.json();
 
     if(!response.ok || result.result === "fail"){
-        throw new Error("근태 등록 실패")
+        throw new Error(result.message)
     }
 
     alert(result.message);
 }
 
 // 근태 데이터
-async function loadAttendanceData(page = 0, params = new URLSearchParams()) {
-    const searchParams = new URLSearchParams(params);
+async function loadAttendanceData(page = 0, params = searchParams) {
+    searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
     const response = await fetch(`/api/attendance?${searchParams.toString()}`);
     const pageData = await response.json();
+
+    if (!response.ok) {
+        throw new Error(pageData.message || "근태 조회 실패");
+    }
 
     const attendanceList = pageData.content.map(attendance => ({
         ...attendance,
@@ -149,9 +148,12 @@ async function loadAttendanceData(page = 0, params = new URLSearchParams()) {
 
     renderTable(".attendance-list", attendanceList, [
         {name: "id", type: "checkbox", className: "attendance-checkbox"},
-        {name: "workDate"},
-        {name: "workTime"},
-        {name: "workHour"},
+        {name: "empName", label: "사원명"},
+        {name: "empCode", label: "사원코드"},
+        {name: "workDate", label: "근태 날짜"},
+        {name: "workTime", label: "근로 시간"},
+        {name: "workHour", label: "총 근로 시간"},
+        {name: "status", label: "근로 상태"},
         {
             type: "button",
             buttons: [
@@ -164,7 +166,7 @@ async function loadAttendanceData(page = 0, params = new URLSearchParams()) {
     document.getElementById("totalAttendanceCount").textContent =
         `총 ${pageData.totalElements}건`;
 
-    createPagination(pageData, nextPage => loadAttendanceData(nextPage, params));
+    createPagination(pageData, nextPage => loadAttendanceData(nextPage));
 }
 
 // 근태 수정 (attendance)
@@ -186,39 +188,39 @@ async function editAttendance(attendance){
         ],
         values: attendanceData,
         onSubmit: async data => {
-            await updateAttendance(attendance.id, data);
+            await updateAttendance(attendance.id, data, attendanceData.empCode);
+            await loadAttendanceData(searchParams);
         }
     })
 }
 
-async function updateAttendance(id, data){
+async function updateAttendance(id, data, empCode){
     const res = await fetch(`/api/attendance/${id}`, {
         method: "PUT",
         headers: {"Content-Type" : "application/json"},
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            ...data,
+            empCode: empCode
+        })
     });
     const result = await res.json();
 
     if(!res.ok || result.result === "fail"){
-        throw new Error("근태 수정 실패");
+        throw new Error(result.message || "근태 수정 실패");
     }
 
     alert(result.message);
-    await loadAttendanceData();
 }
 
 // 근태 삭제 (attendance)
 async function delAttendance(id){
+    console.log(id)
     if(!confirm("해당 근태를 삭제하시겠습니까?")) return;
 
     const response = await fetch(`/api/attendance/${id}`, {
         method: "DELETE"
     });
     const result = await response.json();
-
-    if(!response.ok || result.result === "fail"){
-        throw new Error("근태 삭제 실패");
-    }
 
     alert(result.message);
     await loadAttendanceData();
@@ -268,6 +270,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             [...checkboxes].every(checkbox => checkbox.checked);
 
     });
+    if(currentMode === "emp"){
+
+    }
 
     await changeMode("emp");
 });

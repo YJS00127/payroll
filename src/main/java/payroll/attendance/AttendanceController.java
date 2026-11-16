@@ -22,7 +22,7 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @GetMapping("/attendance")
-    public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@ModelAttribute AttendanceSearchDTO searchDTO,
+    public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@ModelAttribute @Valid AttendanceSearchDTO searchDTO,
                                                                      @PageableDefault(size=10)Pageable pageable){
         return ResponseEntity.ok(attendanceService.getAttendance(searchDTO, pageable));
     }
@@ -49,12 +49,12 @@ public class AttendanceController {
     }
 
     @DeleteMapping("/attendance/{id}")
-    public ResponseEntity<ResultDTO> deleteAttendance(Long id){
+    public ResponseEntity<ResultDTO> deleteAttendance(@PathVariable Long id){
         return ResponseEntity.ok(attendanceService.deleteAttendance(id));
     }
 
     @DeleteMapping("/attendances/{id}")
-    public ResponseEntity<ResultDTO> deleteAttendanceAll(List<Long> ids){
+    public ResponseEntity<ResultDTO> deleteAttendanceAll(@RequestBody List<Long> ids){
         return ResponseEntity.ok(attendanceService.deleteAttendanceAll(ids));
     }
 

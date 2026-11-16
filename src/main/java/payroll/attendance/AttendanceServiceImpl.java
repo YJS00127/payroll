@@ -9,14 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import payroll.attendance.dto.AttendanceRequestDTO;
 import payroll.attendance.dto.AttendanceResponseDTO;
 import payroll.attendance.dto.AttendanceSearchDTO;
 import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
 import payroll.entity.Employee;
+import payroll.holiday.HolidayService;
 import payroll.repository.AttendanceRecordRepository;
 import payroll.repository.EmployeeRepository;
 import payroll.workHistory.WorkService;
@@ -29,21 +28,22 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AttendanceServiceImpl implements AttendanceService{
+public class AttendanceServiceImpl implements AttendanceService {
 
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final EmployeeRepository employeeRepository;
     private final WorkService workService;
+    private final HolidayService holidayService;
 
     @Override
     public Page<AttendanceResponseDTO> getAttendance(AttendanceSearchDTO searchDTO,
-                                                     Pageable pageable){
+                                                     Pageable pageable) {
         Specification<AttendanceRecord> spec = createSpec(searchDTO);
 
         return attendanceRecordRepository.findAll(spec, pageable)
                 .map(attendanceRecord -> {
                     Employee emp = employeeRepository.findById(attendanceRecord.getEmpId())
-                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
                     String empCode = emp.getCode();
                     String empName = emp.getName();
@@ -53,41 +53,42 @@ public class AttendanceServiceImpl implements AttendanceService{
     }
 
     @Override
-    public AttendanceResponseDTO getAttendanceById(Long id){
+    public AttendanceResponseDTO getAttendanceById(Long id) {
         AttendanceRecord attendanceRecord = attendanceRecordRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 근태 기록입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 근태 기록입니다"));
 
         Employee emp = employeeRepository.findById(attendanceRecord.getEmpId())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
         return new AttendanceResponseDTO(attendanceRecord, emp.getCode(), emp.getName());
     }
 
     @Override
     @Transactional
-    public ResultDTO saveAttendance(AttendanceRequestDTO requestDTO){
+    public ResultDTO saveAttendance(AttendanceRequestDTO requestDTO) {
         Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
-        if(attendanceRecordRepository.existsByEmpIdAndWorkDate(emp.getId(), requestDTO.getWorkDate())){
-            throw new EntityExistsException("해당 날짜의 근로 기록이 이미 존재합니다.");
+        if (attendanceRecordRepository.existsByEmpIdAndWorkDate(emp.getId(), requestDTO.getWorkDate())) {
+            throw new EntityExistsException("해당 날짜의 근로 기록이 이미 존재합니다");
         }
 
-        int holidayWorkHour = 0;
         int workHour = 0;
+        int holidayWorkHour = 0;
         int overtimeWorkHour = 0;
 
-        long totalHour = ChronoUnit.HOURS.between(requestDTO.getCheckIn(), requestDTO.getCheckOut());
-        int dailyWorkHour = emp.getContractDailyWorkHour();
+        calculateWorkHour(requestDTO, workHour, overtimeWorkHour, holidayWorkHour);
 
-        if(requestDTO.getWorkDate().getDayOfWeek() == DayOfWeek.SUNDAY){
-            holidayWorkHour = (int) ChronoUnit.HOURS.between(requestDTO.getCheckIn(), requestDTO.getCheckOut());
-        } else{
-            workHour = (int)totalHour - 1;
-            overtimeWorkHour = (int) Math.max(totalHour-dailyWorkHour, 0);
-        }
-
-        AttendanceRecord attendance = requestDTO.toEntity(emp.getId(), workHour, overtimeWorkHour, holidayWorkHour);
+        AttendanceRecord attendance = AttendanceRecord.builder()
+                .empId(emp.getId())
+                .workDate(requestDTO.getWorkDate())
+                .checkIn(requestDTO.getCheckIn())
+                .checkOut(requestDTO.getCheckOut())
+                .workHour(workHour)
+                .overtimeWorkHour(overtimeWorkHour)
+                .holidayWorkHour(holidayWorkHour)
+                .status(requestDTO.getStatus())
+                .build();
 
         attendanceRecordRepository.save(attendance);
 
@@ -96,9 +97,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 
     @Override
     @Transactional
-    public ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs){
-        if(requestDTOs == null || requestDTOs.isEmpty()){
-            throw new IllegalArgumentException("등록할 근로 정보가 입력되지 않았습니다.");
+    public ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs) {
+        if (requestDTOs == null || requestDTOs.isEmpty()) {
+            throw new IllegalArgumentException("등록할 근로 정보가 입력되지 않았습니다");
         }
 
         Set<String> empCodes = requestDTOs.stream()
@@ -111,11 +112,12 @@ public class AttendanceServiceImpl implements AttendanceService{
                         emp -> emp
                 ));
 
-        if(empMap.size() != empCodes.size()){
-            throw new EntityNotFoundException("존재하지 않는 사원이 포함되어 있습니다.");
+        if (empMap.size() != empCodes.size()) {
+            throw new EntityNotFoundException("존재하지 않는 사원이 포함되어 있습니다");
         }
 
-        record AttendanceKey(Long empId, LocalDate workDate) {}
+        record AttendanceKey(Long empId, LocalDate workDate) {
+        }
 
         Set<AttendanceKey> keys = requestDTOs.stream()
                 .map(dto -> new AttendanceKey(
@@ -124,8 +126,8 @@ public class AttendanceServiceImpl implements AttendanceService{
                 ))
                 .collect(Collectors.toSet());
 
-        if(keys.size() != requestDTOs.size()){
-            throw new EntityExistsException("중복되는 근로 정보가 존재합니다.");
+        if (keys.size() != requestDTOs.size()) {
+            throw new EntityExistsException("중복되는 근로 정보가 존재합니다");
         }
 
         Set<Long> empIds = keys.stream()
@@ -147,8 +149,8 @@ public class AttendanceServiceImpl implements AttendanceService{
                         )
                 ));
 
-        if(duplicated){
-            throw new EntityExistsException("이미 등록된 근로 정보가 존재합니다.");
+        if (duplicated) {
+            throw new EntityExistsException("이미 등록된 근로 정보가 존재합니다");
         }
 
         List<AttendanceRecord> records = requestDTOs.stream()
@@ -163,14 +165,14 @@ public class AttendanceServiceImpl implements AttendanceService{
                     int dailyWorkHour = emp.getContractDailyWorkHour();
 
                     if (totalHour <= 0) {
-                        throw new IllegalArgumentException("출퇴근 시간을 확인해주세요.");
+                        throw new IllegalArgumentException("출퇴근 시간을 확인해주세요");
                     }
 
-                    if(dto.getWorkDate().getDayOfWeek() == DayOfWeek.SUNDAY){
+                    if (dto.getWorkDate().getDayOfWeek() == DayOfWeek.SUNDAY) {
                         holidayWorkHour = (int) totalHour;
-                    } else{
+                    } else {
                         workHour = (int) totalHour;
-                        overtimeWorkHour = (int) Math.max(totalHour- dailyWorkHour, 0);
+                        overtimeWorkHour = (int) Math.max(totalHour - dailyWorkHour, 0);
                     }
                     return dto.toEntity(emp.getId(), workHour, overtimeWorkHour, holidayWorkHour);
 
@@ -181,7 +183,7 @@ public class AttendanceServiceImpl implements AttendanceService{
 
         Set<AttendanceKey> updateTargets = new HashSet<>();
 
-        for(AttendanceRecord record : saved) {
+        for (AttendanceRecord record : saved) {
             LocalDate date = record.getWorkDate();
 
             LocalDate paymentDate = date.getDayOfMonth() >= 15
@@ -203,14 +205,23 @@ public class AttendanceServiceImpl implements AttendanceService{
 
     @Override
     @Transactional
-    public ResultDTO updateAttendance(Long id, AttendanceRequestDTO requestDTO){
+    public ResultDTO updateAttendance(Long id, AttendanceRequestDTO requestDTO) {
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
         AttendanceRecord attendance = attendanceRecordRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("해당 근로 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("해당 근로 정보가 존재하지 않습니다"));
 
-        attendance.update(requestDTO, empId);
+        int workHour = 0;
+        int overtimeWorkHour = 0;
+        int holidayWorkHour = 0;
+
+        Map<String, Integer> hour = calculateWorkHour(requestDTO, workHour, overtimeWorkHour, holidayWorkHour);
+
+        attendance.update(requestDTO, empId, hour.get("workHour"),
+                hour.get("overtimeWorkHour"),
+                hour.get("holidayWorkHour")
+        );
 
         workService.autoUpdateWorkHistory(attendance);
 
@@ -219,9 +230,9 @@ public class AttendanceServiceImpl implements AttendanceService{
 
     @Override
     @Transactional
-    public ResultDTO deleteAttendance(Long id){
+    public ResultDTO deleteAttendance(Long id) {
         AttendanceRecord attendance = attendanceRecordRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("근로 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("근로 정보가 존재하지 않습니다"));
 
         attendanceRecordRepository.delete(attendance);
 
@@ -230,11 +241,11 @@ public class AttendanceServiceImpl implements AttendanceService{
 
     @Override
     @Transactional
-    public ResultDTO deleteAttendanceAll(List<Long> id){
+    public ResultDTO deleteAttendanceAll(List<Long> id) {
         List<AttendanceRecord> attendances = attendanceRecordRepository.findAllById(id);
 
-        if(attendances.size() != Set.copyOf(id).size()){
-            throw new EntityNotFoundException("존재하지 않은 근로 정보입니다.");
+        if (attendances.size() != Set.copyOf(id).size()) {
+            throw new EntityNotFoundException("존재하지 않은 근로 정보입니다");
         }
 
         attendanceRecordRepository.deleteAll(attendances);
@@ -243,31 +254,49 @@ public class AttendanceServiceImpl implements AttendanceService{
     }
 
 
-    private Specification<AttendanceRecord> createSpec(AttendanceSearchDTO searchDTO){
-        return((root, query, cb) -> {
+    private Specification<AttendanceRecord> createSpec(AttendanceSearchDTO searchDTO) {
+        return ((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(StringUtils.hasText(searchDTO.getKeyword())){
+            String keyword = searchDTO.getKeyword().trim();
 
-                String keyword = searchDTO.getKeyword().trim() + "%";
+            Long empId = employeeRepository.findIdByNameOrCode(keyword);
 
-                predicates.add(cb.or(
-                        cb.like(root.get("name"), keyword),
-                        cb.like(root.get("code"), keyword)
-                ));
-            }
-            if(searchDTO.getYear() != null){
+            predicates.add(cb.or(cb.equal(root.get("empId"), empId)));
+
+            if (searchDTO.getYear() != null) {
                 predicates.add(cb.equal(root.get("year"), searchDTO.getYear()));
             }
-            if(searchDTO.getMonth() != null){
+            if (searchDTO.getMonth() != null) {
                 predicates.add(cb.equal(root.get("month"), searchDTO.getMonth()));
             }
-            if(searchDTO.getDay() != null){
+            if (searchDTO.getDay() != null) {
                 predicates.add(cb.equal(root.get("day"), searchDTO.getDay()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         }
+        );
+    }
+
+    private Map<String, Integer> calculateWorkHour(AttendanceRequestDTO requestDTO, int workHour, int overtimeWorkHour, int holidayWorkHour){
+        LocalDate workDate = requestDTO.getWorkDate();
+
+        int totalWorkHour = (int) ChronoUnit.HOURS.between(requestDTO.getCheckIn(), requestDTO.getCheckOut());
+
+        if(workDate.getDayOfWeek() == DayOfWeek.SUNDAY ||
+                holidayService.isHoliday(workDate)){
+            holidayWorkHour = totalWorkHour;
+        } else{
+            Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
+                    .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+            workHour = Math.max(totalWorkHour, emp.getContractDailyWorkHour()) - 1;
+            overtimeWorkHour = Math.max(totalWorkHour-workHour, 0);
+        }
+        return Map.of(
+                "workHour", workHour,
+                "overtimeWorkHour", overtimeWorkHour,
+                "holidayWorkHour", holidayWorkHour
         );
     }
 }

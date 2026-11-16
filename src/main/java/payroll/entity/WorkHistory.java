@@ -3,11 +3,13 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Getter
 @Entity
 @Table(name = "work_history")
+@NoArgsConstructor
 public class WorkHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "work_record_seq")

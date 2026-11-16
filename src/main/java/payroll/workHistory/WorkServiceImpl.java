@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
 import payroll.entity.WorkHistory;
+import payroll.holiday.HolidayService;
 import payroll.repository.AttendanceRecordRepository;
 import payroll.repository.EmployeeRepository;
 import payroll.repository.WorkHistoryRepository;
@@ -24,15 +25,16 @@ import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class WorkServiceImpl implements WorkService{
+public class WorkServiceImpl implements WorkService {
 
     private final WorkHistoryRepository workHistoryRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final EmployeeRepository employeeRepository;
+    private final HolidayService holidayService;
 
     @Override
     public Page<WorkResponseDTO> findAllByEmpId(WorkRequestDTO requestDTO,
-                                                Pageable pageable){
+                                                Pageable pageable) {
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
         return workHistoryRepository.findAllByEmpId(empId, pageable);
@@ -42,13 +44,13 @@ public class WorkServiceImpl implements WorkService{
     // 월별 근로 기록 저장
     @Override
     @Transactional
-    public void saveWorkHistory(WorkRequestDTO requestDTO){
+    public void saveWorkHistory(WorkRequestDTO requestDTO) {
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
         int year = requestDTO.getYear();
         int month = requestDTO.getMonth();
 
-        if(workHistoryRepository.existsByEmpIdAndYearAndMonth(empId, year, month)){
+        if (workHistoryRepository.existsByEmpIdAndYearAndMonth(empId, year, month)) {
             throw new EntityExistsException("해당 월의 사원 급여 정보가 이미 존재합니다.");
         }
 
@@ -58,7 +60,7 @@ public class WorkServiceImpl implements WorkService{
 
     @Override
     @Transactional
-    public ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO){
+    public ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO) {
         WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(updateRequestDTO.getEmpId(), updateRequestDTO.getYear(), updateRequestDTO.getMonth())
                 .orElseThrow(() -> new EntityNotFoundException("해당 월의 근로 기록이 없습니다."));
         workHistory.update(
@@ -67,19 +69,19 @@ public class WorkServiceImpl implements WorkService{
                 updateRequestDTO.getOvertimeWorkHour(),
                 updateRequestDTO.getHolidayWorkHour(),
                 updateRequestDTO.getWeeklyHolidayDays()
-                );
+        );
         return new ResultDTO("success", "근로 기록 수정 성공");
     }
 
     @Override
     @Transactional
     // 근태 수정 시 월별 근로 기록 자동 수정
-    public void autoUpdateWorkHistory(AttendanceRecord attendanceRecord){
+    public void autoUpdateWorkHistory(AttendanceRecord attendanceRecord) {
         Long empId = attendanceRecord.getEmpId();
         LocalDate workDate = attendanceRecord.getWorkDate();
 
-        LocalDate paymentDate = workDate.getDayOfMonth() >= 15
-                ? workDate.plusMonths(1)
+        LocalDate paymentDate = workDate.getDayOfMonth() <= 14
+                ? workDate.minusMonths(1)
                 : workDate;
 
         int year = paymentDate.getYear();
@@ -114,11 +116,11 @@ public class WorkServiceImpl implements WorkService{
 //    }
 
 
-    // 한 달(전달 15일 ~ 이번달 14일) 급여 기록
-    WorkHistory workRecord(Long empId, int year, int month){
+    // 한 달(이번달 15일 ~ 다음달 14일) 급여 기록
+    WorkHistory workRecord(Long empId, int year, int month) {
         // 급여지급일
         int paymentDay = 15;
-        // year 2026 month 9
+
         LocalDate start = LocalDate.of(year, month, paymentDay).minusMonths(1);
         LocalDate end = LocalDate.of(year, month, paymentDay).minusDays(1);
 
@@ -131,26 +133,18 @@ public class WorkServiceImpl implements WorkService{
                         !record.getStatus().equals("결근"))
                 .count();
 
-        // 총 근로시간 (휴일 제외)
+        // 한달 간 총 근로시간
         int totalWorkHour = records.stream()
-                .filter(record -> {
-                    LocalDate recordDate = record.getWorkDate();
-                    return recordDate.getDayOfWeek() != DayOfWeek.SUNDAY;
-                })
                 .mapToInt(AttendanceRecord::getWorkHour)
                 .sum();
 
-        // 연장 근로시간
+        // 한달 간 총 연장 근로시간
         int overtimeWorkHour = records.stream()
                 .mapToInt(AttendanceRecord::getOvertimeWorkHour)
                 .sum();
 
-        // 휴일 근로시간
+        // 한달 간 총 휴일 근로시간
         int holidayWorkHour = records.stream()
-                .filter(record -> {
-                    LocalDate recordDate = record.getWorkDate();
-                    return recordDate.getDayOfWeek() == DayOfWeek.SUNDAY;
-                })
                 .mapToInt(AttendanceRecord::getHolidayWorkHour)
                 .sum();
 
@@ -169,7 +163,7 @@ public class WorkServiceImpl implements WorkService{
     }
 
     // 주휴일 수
-    private int calculateWeeklyHolidays(Long empId, LocalDate start, LocalDate end){
+    private int calculateWeeklyHolidays(Long empId, LocalDate start, LocalDate end) {
         return (int) start.datesUntil(end.plusDays(1))
                 // 특정 월에서 일요일만 필터링
                 .filter(date -> date.getDayOfWeek() == DayOfWeek.SUNDAY)
@@ -180,16 +174,18 @@ public class WorkServiceImpl implements WorkService{
 
 
     // 주휴일 유무 확인
-    private boolean isExistWeeklyHoliday(Long empId, LocalDate monday){
+    private boolean isExistWeeklyHoliday(Long empId, LocalDate monday) {
 
-        return IntStream.range(0,5)
+        return IntStream.range(0, 5)
                 .mapToObj(monday::plusDays)
-                .allMatch(date -> attendanceRecordRepository
-                        .findByEmpIdAndWorkDate(
-                                empId,
-                                date
-                        )
-                        .map(record -> !record.getStatus().equals("결근"))
-                .orElse(true));
+                .allMatch(date -> {
+                    if(!holidayService.isHoliday(date)){
+                        return true;
+                    }
+
+                    return attendanceRecordRepository.findByEmpIdAndWorkDate(empId, date)
+                            .map(record -> !record.getStatus().equals("결근"))
+                            .orElse(true);
+                });
     }
 }
