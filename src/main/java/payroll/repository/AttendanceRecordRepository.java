@@ -23,7 +23,7 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
     SELECT a FROM AttendanceRecord a
     WHERE a.empId = :empId
       AND a.workDate >= :start
-      AND a.workDate < :end
+      AND a.workDate <= :end
     """)
     List<AttendanceRecord> findByEmpIdPeriod(@Param("empId") Long empId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 

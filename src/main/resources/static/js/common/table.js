@@ -1,4 +1,4 @@
-function renderTable(tbodyClass, data, columns  ){
+function renderTable(tbodyClass, data, columns){
     const tbody = document.querySelector(tbodyClass);
     tbody.innerHTML = "";
 

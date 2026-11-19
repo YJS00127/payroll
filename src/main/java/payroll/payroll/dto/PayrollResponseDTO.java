@@ -5,6 +5,7 @@ import payroll.entity.PayrollHistory;
 import java.time.LocalDate;
 
 public class PayrollResponseDTO {
+    private Long id;
     private String empCode;
     private String empName;
     private String deptName;
@@ -39,6 +40,7 @@ public class PayrollResponseDTO {
 
     public PayrollResponseDTO(PayrollHistory payrollHistory,
                               String empCode, String empName, String deptName){
+        this.id = payrollHistory.getId();
         this.empCode = empCode;
         this.empName = empName;
         this.deptName = deptName;

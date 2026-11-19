@@ -2,6 +2,7 @@ package payroll.attendance.dto;
 
 import lombok.Getter;
 import payroll.entity.AttendanceRecord;
+import payroll.entity.Employee;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,19 +15,23 @@ public class AttendanceResponseDTO {
     private LocalTime checkIn;
     private LocalTime checkOut;
     private LocalDate workDate;
-    private int workHour;
+    private int workMinutes;
+    private int overtimeWorkMinutes;
+    private int holidayWorkMinutes;
     private String status;
 
 
     public AttendanceResponseDTO(AttendanceRecord attendance,
-                                 String empCode, String empName) {
+                                 Employee emp) {
         this.id = attendance.getId();
-        this.empCode = empCode;
-        this.empName = empName;
+        this.empCode = emp.getCode();
+        this.empName = emp.getName();
         this.checkIn = attendance.getCheckIn();
         this.checkOut = attendance.getCheckOut();
         this.workDate = attendance.getWorkDate();
-        this.workHour = attendance.getWorkHour();
+        this.workMinutes = attendance.getWorkMinutes();
+        this.overtimeWorkMinutes = attendance.getOvertimeWorkMinutes();
+        this.holidayWorkMinutes = attendance.getHolidayWorkMinutes();
         this.status = attendance.getStatus();
     }
 }

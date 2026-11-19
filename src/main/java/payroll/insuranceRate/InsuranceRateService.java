@@ -1,16 +1,22 @@
 package payroll.insuranceRate;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import payroll.insuranceRate.dto.InsuranceRateRequestDTO;
 import payroll.insuranceRate.dto.InsuranceRateResponseDTO;
 import payroll.insuranceRate.dto.InsuranceRateSearchDTO;
 import payroll.common.dto.ResultDTO;
 
+import java.util.List;
+
 public interface InsuranceRateService {
-    Page<InsuranceRateResponseDTO> findInsuranceRate(InsuranceRateSearchDTO searchDTO, Pageable pageable);
+    List<InsuranceRateResponseDTO> findInsuranceRate(InsuranceRateSearchDTO searchDTO);
+
+    InsuranceRateResponseDTO findInsuranceRateById(Long Id);
 
     ResultDTO saveInsuranceRate(InsuranceRateRequestDTO requestDTO);
 
     ResultDTO updateInsuranceRate(Long id, InsuranceRateRequestDTO requestDTO);
+
+    ResultDTO deleteInsuranceRate(Long id);
+
+    ResultDTO deleteInsuranceRates(List<Long> ids);
 }

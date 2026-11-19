@@ -1,6 +1,7 @@
+let searchParams = new URLSearchParams();
 // 사원 목록 조회
-async function loadEmpData(page=0, params = new URLSearchParams()) {
-    const searchParams = new URLSearchParams(params);
+async function loadEmpData(page=0, params = searchParams) {
+    searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
     const response = await fetch(`/api/emp?${searchParams.toString()}`);
@@ -29,7 +30,7 @@ async function loadEmpData(page=0, params = new URLSearchParams()) {
         `총 ${pageData.totalElements}명`;
 
     // 페이지네이션 출력
-    createPagination(pageData, loadEmpData);
+    createPagination(pageData, nextPage => loadEmpData(nextPage));
 }
 
 // 성별 옵션
@@ -54,38 +55,53 @@ function addEmp() {
     openModal({
         title: "사원 등록",
         fields: [
-            {name: "name", label: "이름", required: true},
-            {name: "code", label: "사원코드", required: true},
+            {name: "name", label: "이름"},
+            {name: "code", label: "사원코드"},
             {
                 name: "deptName",
                 label: "부서명",
                 type: "select",
-                options: deptOptions,
-                required: true
+                options: deptOptions
             },
             {
                 name: "rank",
                 label: "직급",
                 type: "select",
-                options: rankOptions,
-                required: true
+                options: rankOptions
             },
-            {name: "joiningDate", label: "입사일", type: "date", required: true},
-            {name: "birth", label: "생년월일", type: "date", required: true},
+            {name: "joiningDate", label: "입사일", type: "date"},
+            {name: "birth", label: "생년월일", type: "date"},
             {
                 name: "gender",
                 label: "성별",
                 type: "select",
-                options: genderOptions,
-                required: true
+                options: genderOptions
             },
-            {name: "hourlyWage", label: "시급", required: true},
-            {name: "initialMonthlyIncome", label: "최초 월평균 급여", required: true},
-            {name: "contractDailyWorkHour", label: "계약 근로 시간", required: true}
+            {
+                name: "hourlyWage",
+                label: "시급",
+                type: "number",
+                min: 9000,
+                max: 50000
+            },
+            {
+                name: "initialMonthlyIncome",
+                label: "최초 월평균 급여",
+                type: "number",
+                min: 500000,
+                max: 5000000
+            },
+            {
+                name: "contractDailyWorkMinutes",
+                label: "계약 근로 시간",
+                type: "number",
+                min: 1,
+                max: 10
+            }
         ],
         onSubmit: async data => {
             await saveEmp(data);
-            await loadEmpData();
+            await loadEmpData(0, searchParams);
         }
     });
 }
@@ -99,7 +115,7 @@ async function saveEmp(data){
     const result = await response.json();
 
     if(!response.ok || result.result === "fail"){
-        throw new Error("사원 등록 실패");
+        throw new Error(result.maessage || "사원 등록 실패");
     }
 
     alert(result.message);
@@ -109,42 +125,60 @@ async function saveEmp(data){
 async function editEmp(emp) {
     const response = await fetch(`/api/emp/${emp.id}`);
     const empData = await response.json();
+
     openModal( {
         title: "사원 수정",
         fields: [
-            {name: "name", label: "이름", required: true},
-            {name: "code", label: "사원코드", required: true},
+            {name: "name", label: "이름"},
+            {name: "code", label: "사원코드"},
             {
                 name: "deptName",
                 label: "부서명",
                 type: "select",
-                options: deptOptions,
-                required: true
+                options: deptOptions
             },
             {
                 name: "rank",
                 label: "직급",
                 type: "select",
-                options: rankOptions,
-                required: true
+                options: rankOptions
             },
-            {name: "joiningDate", label: "입사일", type: "date", required: true},
-            {name: "birth", label: "생년월일", type: "date", required: true},
+            {name: "joiningDate", label: "입사일", type: "date"},
+            {name: "birth", label: "생년월일", type: "date"},
             {
                 name: "gender",
                 label: "성별",
                 type: "select",
-                options: genderOptions,
-                required: true
+                options: genderOptions
             },
-            {name: "hourlyWage", label: "시급", required: true},
-            {name: "initialMonthlyIncome", label: "최초 월평균 급여", required: true},
-            {name: "contractDailyWorkHour", label: "계약 근로 시간", required: true}
+            {
+                name: "contractDailyWorkHour",
+                label: "계약 일일근로 시간",
+                type: "number",
+                min: 1,
+                max: 10
+            },
+            {
+                name: "initialMonthlyIncome",
+                label: "최초 월평균 급여",
+                type: "number",
+                min: 500000,
+                max: 5000000
+            },
+            {
+                name: "hourlyWage",
+                label: "시급",
+                type: "number",
+                disabled: true
+            },
         ],
-        values: empData,
+        values: {
+            ...empData,
+            contractDailyWorkHour : empData.contractDailyWorkMinutes / 60
+        },
         onSubmit: async data => {
             await updateEmp(emp.id, data);
-            await loadEmpData();
+            await loadEmpData(searchParams.get("page") ?? 0, searchParams);
         }
     })
 }
@@ -156,7 +190,6 @@ async function updateEmp(id, data){
       headers: {"Content-Type" : "application/json"},
       body: JSON.stringify(data)
     });
-
     const result = await response.json();
 
     if(!response.ok || result.result === "fail"){
@@ -179,7 +212,7 @@ async function delEmp(id){
     }
 
     alert(result.message);
-    await loadEmpData();
+    await loadEmpData(searchParams);
 }
 
 // 사원 다중 삭제
@@ -194,7 +227,7 @@ async function delSelectedEmp(){
         return;
     }
 
-    const response = await fetch(`api/emps`, {
+    const response = await fetch(`api/emp`, {
         method: "DELETE",
         headers: {"Content-Type" : "application/json"},
         body: JSON.stringify(ids)
@@ -206,7 +239,7 @@ async function delSelectedEmp(){
     }
 
     alert(result.message);
-    await loadEmpData();
+    await loadEmpData(searchParams);
 }
 
 // 최초 페이지 로딩

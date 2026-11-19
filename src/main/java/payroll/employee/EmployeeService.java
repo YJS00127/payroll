@@ -18,7 +18,9 @@ public interface EmployeeService {
 
     ResultDTO updateEmp(Long id, EmpUpdateRequestDTO requestDTO);
 
+    void updateHourlyWage(Long id, int hourlyWage);
+
     ResultDTO deleteEmp(Long id);
 
-    ResultDTO deleteEmpAll(List<Long> id);
+    ResultDTO deleteEmps(List<Long> id);
 }

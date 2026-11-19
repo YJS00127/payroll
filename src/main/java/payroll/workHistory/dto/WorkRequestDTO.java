@@ -8,12 +8,4 @@ public class WorkRequestDTO {
     private String empCode;
     private int year;
     private int month;
-
-    public WorkHistory toEntity(Long empId){
-        return WorkHistory.builder()
-                .empId(empId)
-                .year(this.year)
-                .month(this.month)
-                .build();
-    }
 }

@@ -69,10 +69,8 @@ public class PayrollServiceImpl implements PayrollService {
 
         LocalDate resignationDate = emp.getRetirementDate();
 
-        LocalDate endDate = LocalDate.of(
-                requestDTO.getYear(), requestDTO.getMonth(), 14);
-
-        LocalDate startDate = endDate.plusDays(1).minusMonths(1);
+        LocalDate startDate = LocalDate.of(
+                requestDTO.getYear(), requestDTO.getMonth(), 1);
 
         if (resignationDate != null && startDate.isAfter(resignationDate)) {
             throw new IllegalArgumentException("퇴사 이후의 급여는 생성할 수 없습니다.");
@@ -163,8 +161,8 @@ public class PayrollServiceImpl implements PayrollService {
 
         int year = requestDTO.getYear();
         int month = requestDTO.getMonth();
-        LocalDate end = LocalDate.of(year, month, 14);
-        LocalDate start = end.plusDays(1).minusMonths(1);
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
         // 특정 사원의 특정h 달 근로 정보 (총 근로시간, 총 근로일, 주차일수, 주차시간 등)
         WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(empId, year, month)
@@ -174,14 +172,14 @@ public class PayrollServiceImpl implements PayrollService {
         List<AttendanceRecord> attendance = attendanceRecordRepository.findByEmpIdPeriod(empId, start, end);
 
         int hourlyWage = emp.getHourlyWage();
-        int contractDailyHour = emp.getContractDailyWorkHour();
-        int totalWorkHour = workHistory.getTotalWorkHour();
+        int contractDailyMinutes = emp.getContractDailyWorkMinutes();
+        int totalWorkMinutes = workHistory.getTotalWorkMinutes();
         int weeklyHolidayDays = workHistory.getWeeklyHolidayDays();
 
         LocalDate joiningDate = emp.getJoiningDate();
 
-        int holidayHour = 0;
-        int leaveHour = 0;
+        int holidayMinutes = 0;
+        int leaveMinutes = 0;
 
         JsonNode holidays = holidayService.getHolidays(year, month)
                 .path("response")
@@ -198,7 +196,7 @@ public class PayrollServiceImpl implements PayrollService {
 
             if (holidayDate.getDayOfWeek() != DayOfWeek.SATURDAY &&
                     holidayDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                holidayHour += emp.getContractDailyWorkHour();
+                holidayMinutes += emp.getContractDailyWorkMinutes();
             }
         }
 
@@ -211,18 +209,18 @@ public class PayrollServiceImpl implements PayrollService {
             LocalDate to = leave.getEndDate().isAfter(end)
                     ? end : leave.getEndDate();
 
-            leaveHour = (int) (leaveHour + from.datesUntil(to.plusDays(1))
+            leaveMinutes = (int) (leaveMinutes + from.datesUntil(to.plusDays(1))
                     .filter(date -> date.getDayOfWeek() != DayOfWeek.SATURDAY)
                     .filter(date -> date.getDayOfWeek() != DayOfWeek.SUNDAY)
                     .filter(date -> !holidayService.isHoliday(date))
-                    .count() * emp.getContractDailyWorkHour());
+                    .count() * emp.getContractDailyWorkMinutes());
         }
 
 
         // 기본급
-        int basicSalary = (totalWorkHour + holidayHour + leaveHour) * hourlyWage;
+        int basicSalary = ((totalWorkMinutes + holidayMinutes + leaveMinutes) * hourlyWage) / 60;
         // 주차수당
-        int weeklyHolidayPay = weeklyHolidayDays * hourlyWage * contractDailyHour;
+        int weeklyHolidayPay = (weeklyHolidayDays * hourlyWage * contractDailyMinutes) / 60;
         // 전월소급분
         int retroactivePay = requestDTO.getRetroactivePay();
 
@@ -233,28 +231,24 @@ public class PayrollServiceImpl implements PayrollService {
 
         LocalDate oneYearDate = joiningDate.plusYears(1);
 
-        LocalDate endDate = LocalDate.of(requestDTO.getYear(), requestDTO.getMonth(), 14);
-        LocalDate startDate = endDate.plusDays(1).minusMonths(1);
-
-
         // 급여 명세서 날짜 사이에 입사 1년이 포함될 시 그 명세서에 월차수당 계산
-        if (!oneYearDate.isBefore(startDate)
-                && !oneYearDate.isAfter(endDate)) {
+        if (!oneYearDate.isBefore(start)
+                && !oneYearDate.isAfter(end)) {
 
             // 입사연도부터 1주년 연도까지 잔여 월차 합산
             int remainingLeave = leaveRecordRepository.sumRemainingLeave(empId, joiningDate.getYear(), oneYearDate.getYear());
 
-            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyHour;
+            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyMinutes / 60;
         } else if (month == 1 && year > joiningDate.getYear() + 1) {
             int remainingLeave = leaveRecordRepository.findRemainingLeaveByEmpIdAndYear(empId, year - 1);
-            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyHour;
+            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyMinutes / 60;
         }
 
         // 식대
         int mealAllowance = requestDTO.getDailyMealAllowance() * workHistory.getWorkDays();
 
         // 연장근로수당
-        int overtimePay = (int) (workHistory.getOvertimeWorkHour() * hourlyWage * 1.5);
+        int overtimePay = (int) (workHistory.getOvertimeWorkMinutes() * hourlyWage * 1.5 / 60);
         // 미지급수당
         int unpaidAllowance = requestDTO.getUnpaidAllowance();
         // 미지급수당 사유
@@ -265,13 +259,13 @@ public class PayrollServiceImpl implements PayrollService {
         // 휴일근로수당
         int holidayWorkPay = attendance.stream()
                 .mapToInt(wh -> {
-                    int hour = wh.getHolidayWorkHour();
+                    int minutes = wh.getHolidayWorkMinutes();
 
-                    int normalHour = Math.min(hour, 8);
-                    int overtimeHour = Math.max(hour - 8, 0);
+                    int normalMinutes = Math.min(minutes, emp.getContractDailyWorkMinutes());
+                    int overtimeWorkMinutes = Math.max(minutes - emp.getContractDailyWorkMinutes(), 0);
 
-                    return (int) (normalHour * hourlyWage * 2.5) +
-                            (overtimeHour * hourlyWage * 3);
+                    return (int) (normalMinutes * hourlyWage * 2.5 / 60) +
+                            (overtimeWorkMinutes * hourlyWage * 3 / 60);
                 }).sum();
 
         return PayrollHistoryPaymentDTO.builder()

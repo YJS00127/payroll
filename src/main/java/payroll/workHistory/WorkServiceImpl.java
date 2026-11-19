@@ -2,13 +2,16 @@ package payroll.workHistory;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
+import payroll.entity.Employee;
 import payroll.entity.WorkHistory;
 import payroll.holiday.HolidayService;
 import payroll.repository.AttendanceRecordRepository;
@@ -16,11 +19,15 @@ import payroll.repository.EmployeeRepository;
 import payroll.repository.WorkHistoryRepository;
 import payroll.workHistory.dto.WorkRequestDTO;
 import payroll.workHistory.dto.WorkResponseDTO;
+import payroll.workHistory.dto.WorkSearchDTO;
 import payroll.workHistory.dto.WorkUpdateRequestDTO;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -33,60 +40,98 @@ public class WorkServiceImpl implements WorkService {
     private final HolidayService holidayService;
 
     @Override
-    public Page<WorkResponseDTO> findAllByEmpId(WorkRequestDTO requestDTO,
-                                                Pageable pageable) {
-        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
-        return workHistoryRepository.findAllByEmpId(empId, pageable);
+    public List<WorkResponseDTO> findWork(WorkSearchDTO searchDTO) {
+        Specification<WorkHistory> spec = createSpec(searchDTO);
+
+        return workHistoryRepository.findAll(spec, Sort.by("year", "month"))
+                .stream()
+                .map(workHistory -> {
+                    Employee emp = employeeRepository.findById(workHistory.getEmpId())
+                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+
+                    return new WorkResponseDTO(workHistory, emp);
+                }).toList();
     }
 
+    @Override
+    public WorkResponseDTO findWorkById(Long id) {
+        WorkHistory workHistory = workHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 근무 기록입니다"));
+        Employee emp = employeeRepository.findById(workHistory.getEmpId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+
+        return new WorkResponseDTO(workHistory, emp);
+    }
 
     // 월별 근로 기록 저장
+//    @Override
+//    @Transactional
+//    public ResultDTO saveWorkHistory(WorkRequestDTO requestDTO) {
+//        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
+//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+//        int year = requestDTO.getYear();
+//        int month = requestDTO.getMonth();
+//
+//        if (workHistoryRepository.existsByEmpIdAndYearAndMonth(empId, year, month)) {
+//            throw new EntityExistsException("해당 월의 사원 급여 정보가 이미 존재합니다");
+//        }
+//
+//        WorkHistory workHistory = workRecord(empId, year, month);
+//        workHistoryRepository.save(workHistory);
+//
+//        return new ResultDTO("success", "근무 기록 저장 성공");
+//    }
+
     @Override
     @Transactional
-    public void saveWorkHistory(WorkRequestDTO requestDTO) {
-        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
-        int year = requestDTO.getYear();
-        int month = requestDTO.getMonth();
+    public void autoSaveWork(AttendanceRecord attendance) {
+        Long empId = attendance.getEmpId();
+        int year = attendance.getWorkDate().getYear();
+        int month = attendance.getWorkDate().getMonthValue();
 
-        if (workHistoryRepository.existsByEmpIdAndYearAndMonth(empId, year, month)) {
-            throw new EntityExistsException("해당 월의 사원 급여 정보가 이미 존재합니다.");
-        }
+        WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(empId, year, month)
+                .orElseGet(() -> workHistoryRepository.save(
+                        WorkHistory.builder()
+                                .empId(empId)
+                                .year(year)
+                                .month(month)
+                                .build()
+                ));
 
-        WorkHistory workHistory = workRecord(empId, year, month);
-        workHistoryRepository.save(workHistory);
-    }
+        workHistory.add(attendance);
 
-    @Override
-    @Transactional
-    public ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO) {
-        WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(updateRequestDTO.getEmpId(), updateRequestDTO.getYear(), updateRequestDTO.getMonth())
-                .orElseThrow(() -> new EntityNotFoundException("해당 월의 근로 기록이 없습니다."));
-        workHistory.update(
-                updateRequestDTO.getWorkDays(),
-                updateRequestDTO.getTotalWorkHour(),
-                updateRequestDTO.getOvertimeWorkHour(),
-                updateRequestDTO.getHolidayWorkHour(),
-                updateRequestDTO.getWeeklyHolidayDays()
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+        List<AttendanceRecord> records = attendanceRecordRepository.findByEmpIdPeriod(empId, start.minusDays(6), end);
+
+        workHistory.updateWeeklyHolidayDays(
+                calculateWeeklyHolidays(records, start, end)
         );
-        return new ResultDTO("success", "근로 기록 수정 성공");
     }
+
+//    @Override
+//    @Transactional
+//    public ResultDTO updateWorkHistory(WorkUpdateRequestDTO requestDTO) {
+//        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
+//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+//
+//        WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(empId, requestDTO.getYear(), requestDTO.getMonth())
+//                .orElseThrow(() -> new EntityNotFoundException("해당 월의 근로 기록이 없습니다"));
+//        workHistory.update(
+//                requestDTO.getWorkDays(),
+//                requestDTO.getTotalWorkHour() * 60,
+//                requestDTO.getOvertimeWorkHour() * 60,
+//                requestDTO.getHolidayWorkHour() * 60,
+//                requestDTO.getWeeklyHolidayDays()
+//        );
+//        return new ResultDTO("success", "근로 기록 수정 성공");
+//    }
 
     @Override
     @Transactional
     // 근태 수정 시 월별 근로 기록 자동 수정
-    public void autoUpdateWorkHistory(AttendanceRecord attendanceRecord) {
-        Long empId = attendanceRecord.getEmpId();
-        LocalDate workDate = attendanceRecord.getWorkDate();
-
-        LocalDate paymentDate = workDate.getDayOfMonth() <= 14
-                ? workDate.minusMonths(1)
-                : workDate;
-
-        int year = paymentDate.getYear();
-        int month = paymentDate.getMonthValue();
-
+    public void autoUpdateWorkHistory(Long empId, int year, int month) {
         // 근태 기록 재집계
         WorkHistory calculated = workRecord(empId, year, month);
 
@@ -97,95 +142,109 @@ public class WorkServiceImpl implements WorkService {
 
         existing.update(
                 calculated.getWorkDays(),
-                calculated.getTotalWorkHour(),
-                calculated.getOvertimeWorkHour(),
-                calculated.getHolidayWorkHour(),
+                calculated.getTotalWorkMinutes(),
+                calculated.getOvertimeWorkMinutes(),
+                calculated.getHolidayWorkMinutes(),
                 calculated.getWeeklyHolidayDays()
         );
     }
 
-//    @Override
-//    @Transactional
-//    public ResultDTO deleteWorkHistory(Long id){
-//        WorkHistory workHistory = workHistoryRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("근로 기록이 없습니다."));
-//
-//        workHistory.delete();
-//
-//        return new ResultDTO("success", "근로 기록 삭제 성공");
-//    }
+    private Specification<WorkHistory> createSpec(WorkSearchDTO searchDTO) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(searchDTO.getKeyword())) {
+                String keyword = searchDTO.getKeyword().trim();
+                Long empId = employeeRepository.findIdByNameOrCode(keyword);
+
+                predicates.add(cb.equal(root.get("empId"), empId));
+            }
+
+            if (searchDTO.getYear() != null) {
+                predicates.add(cb.equal(root.get("year"), searchDTO.getYear()));
+            }
+            if (searchDTO.getMonth() != null) {
+                predicates.add(cb.equal(root.get("month"), searchDTO.getMonth()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 
 
-    // 한 달(이번달 15일 ~ 다음달 14일) 급여 기록
+    // 한달 근무 기록
     WorkHistory workRecord(Long empId, int year, int month) {
-        // 급여지급일
-        int paymentDay = 15;
-
-        LocalDate start = LocalDate.of(year, month, paymentDay).minusMonths(1);
-        LocalDate end = LocalDate.of(year, month, paymentDay).minusDays(1);
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
         List<AttendanceRecord> records =
-                attendanceRecordRepository.findByEmpIdPeriod(empId, start, end);
+                attendanceRecordRepository.findByEmpIdPeriod(empId, start.minusDays(6), end);
+
+        List<AttendanceRecord> monthlyRecords = records.stream()
+                .filter(record -> !record.getWorkDate().isBefore(start))
+                .toList();
 
         // 근로일수
-        int workDays = (int) records.stream()
+        int workDays = (int) monthlyRecords.stream()
                 .filter(record ->
                         !record.getStatus().equals("결근"))
                 .count();
 
         // 한달 간 총 근로시간
-        int totalWorkHour = records.stream()
-                .mapToInt(AttendanceRecord::getWorkHour)
+        int totalWorkMinutes = monthlyRecords.stream()
+                .mapToInt(AttendanceRecord::getWorkMinutes)
                 .sum();
 
         // 한달 간 총 연장 근로시간
-        int overtimeWorkHour = records.stream()
-                .mapToInt(AttendanceRecord::getOvertimeWorkHour)
+        int overtimeWorkMinutes = monthlyRecords.stream()
+                .mapToInt(AttendanceRecord::getOvertimeWorkMinutes)
                 .sum();
 
         // 한달 간 총 휴일 근로시간
-        int holidayWorkHour = records.stream()
-                .mapToInt(AttendanceRecord::getHolidayWorkHour)
+        int holidayWorkMinutes = monthlyRecords.stream()
+                .mapToInt(AttendanceRecord::getHolidayWorkMinutes)
                 .sum();
 
-        int weeklyHolidayDays = calculateWeeklyHolidays(empId, start, end);
+        int weeklyHolidayDays = calculateWeeklyHolidays(records, start, end);
 
         return WorkHistory.builder()
                 .empId(empId)
                 .year(year)
                 .month(month)
                 .workDays(workDays)
-                .totalWorkHour(totalWorkHour)
-                .overtimeWorkHour(overtimeWorkHour)
-                .holidayWorkHour(holidayWorkHour)
+                .totalWorkMinutes(totalWorkMinutes)
+                .overtimeWorkMinutes(overtimeWorkMinutes)
+                .holidayWorkMinutes(holidayWorkMinutes)
                 .weeklyHolidayDays(weeklyHolidayDays)
                 .build();
     }
 
     // 주휴일 수
-    private int calculateWeeklyHolidays(Long empId, LocalDate start, LocalDate end) {
+    private int calculateWeeklyHolidays(List<AttendanceRecord> records, LocalDate start, LocalDate end) {
+        Map<LocalDate, AttendanceRecord> attendanceMap = records.stream()
+                .collect(Collectors.toMap(
+                        AttendanceRecord::getWorkDate,
+                        record -> record
+                ));
         return (int) start.datesUntil(end.plusDays(1))
-                // 특정 월에서 일요일만 필터링
                 .filter(date -> date.getDayOfWeek() == DayOfWeek.SUNDAY)
-                // 발생된 주차일 수
-                .filter(sunday -> isExistWeeklyHoliday(empId, sunday.minusDays(6)))
+                .filter(sunday -> !sunday.isAfter(LocalDate.now()))
+                .filter(sunday ->
+                        isExistWeeklyHoliday(attendanceMap, sunday.minusDays(6)))
                 .count();
     }
 
-
     // 주휴일 유무 확인
-    private boolean isExistWeeklyHoliday(Long empId, LocalDate monday) {
-
+    private boolean isExistWeeklyHoliday(Map<LocalDate, AttendanceRecord> attendanceMap, LocalDate monday) {
         return IntStream.range(0, 5)
                 .mapToObj(monday::plusDays)
                 .allMatch(date -> {
-                    if(!holidayService.isHoliday(date)){
+                    if (holidayService.isHoliday(date)) {
                         return true;
                     }
+                    AttendanceRecord record = attendanceMap.get(date);
 
-                    return attendanceRecordRepository.findByEmpIdAndWorkDate(empId, date)
-                            .map(record -> !record.getStatus().equals("결근"))
-                            .orElse(true);
+                    return record != null && !record.getStatus().equals("결근");
                 });
     }
 }

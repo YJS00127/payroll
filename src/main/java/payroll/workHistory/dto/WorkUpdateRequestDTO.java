@@ -6,9 +6,10 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class WorkUpdateRequestDTO {
-    private Long empId;
     private int year;
     private int month;
+    private String empName;
+    private String empCode;
     private int workDays;
     private int totalWorkHour;
     private int overtimeWorkHour;

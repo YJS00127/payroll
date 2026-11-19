@@ -42,8 +42,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(
             MethodArgumentNotValidException e){
 
+        String message = e.getBindingResult()
+                .getFieldErrors()
+                .get(0)
+                .getDefaultMessage();
+
         log.error("400 Bad Request : 입력값 검증 실패", e);
-        ErrorResponse response = new ErrorResponse("fail", e.getMessage());
+        ErrorResponse response = new ErrorResponse("fail", message);
         return ResponseEntity.badRequest().body(response);
     }
 

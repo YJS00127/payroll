@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+</head>
+<body>
+<div class="app">
+    <div class="tabs">
+        <button class="tab-button active" data-tab="leave-usage">휴가 이력</button>
+        <button class="tab-button" data-tab="leave-record">휴가 현황</button>
+    </div>
+    <div id="leave-usage" class="tab-content active">
+        <div id="searchUsageBox"></div>
+        <div class="list-header">
+            <div class="button-delete-add">
+                <button id="deleteSelectedUsageBtn" onclick="deleteSelectedLeaveUsage()">일괄 삭제</button>
+                <button id="addUsageBtn" onclick="addLeaveUsage()">등록</button>
+            </div>
+        </div>
+        <table class="list-table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="selectUsageAll"></th>
+                <th>사원명</th>
+                <th>사원코드</th>
+                <th>휴가 날짜</th>
+                <th>휴가일수</th>
+                <th>수정/삭제</th>
+            </tr>
+            </thead>
+            <tbody class="leave-usage-list"></tbody>
+        </table>
+    </div>
+    <div id="leave-record" class="tab-content">
+        <div id="searchRecordBox"></div>
+        <div class="list-header">
+            <div class="button-delete-add">
+                <button id="deleteSelectedRecordBtn" onclick="deleteSelectedLeaveRecord()">일괄 삭제</button>
+                <button id="addRecordBtn" onclick="addLeaveRecord()">등록</button>
+            </div>
+        </div>
+        <table class="list-table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="selectRecordAll"></th>
+                <th>사원명</th>
+                <th>사원코드</th>
+                <th>연도</th>
+                <th>발생 휴가</th>
+                <th>사용 휴가</th>
+                <th>잔여 휴가</th>
+                <th>수정/삭제</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<div class="pagination"></div>
+<script src="/js/common/tabs.js"></script>
+<script src="/js/common/table.js"></script>
+<script src="/js/common/modal.js"></script>
+<script src="/js/common/search.js"></script>
+<script src="/js/common/pagination.js"></script>
+<script src="/js/leave.js"></script>
+</body>
+</html>

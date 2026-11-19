@@ -30,40 +30,56 @@ public class WorkHistory {
     private int workDays;
 
     @Comment("총 근로 시간")
-    @Column(name = "total_work_hour")
-    private int totalWorkHour;
+    @Column(name = "total_work_minutes")
+    private int totalWorkMinutes;
 
     @Comment("연장근로 시간")
-    @Column(name = "overtime_hour")
-    private int overtimeWorkHour;
+    @Column(name = "overtime_work_minutes")
+    private int overtimeWorkMinutes;
 
     @Comment("휴일근로 시간")
-    @Column(name = "holiday_work_hour")
-    private int holidayWorkHour;
+    @Column(name = "holiday_work_minutes")
+    private int holidayWorkMinutes;
 
     @Comment("주차 일수")
     @Column(name = "weekly_holiday_days")
     private int weeklyHolidayDays;
 
     @Builder
-    public WorkHistory(Long empId, int year, int month, int totalWorkHour, int workDays,
-                       int overtimeWorkHour, int holidayWorkHour, int weeklyHolidayDays) {
+    public WorkHistory(Long empId, int year, int month, int totalWorkMinutes, int workDays,
+                       int overtimeWorkMinutes, int holidayWorkMinutes, int weeklyHolidayDays) {
         this.empId = empId;
         this.year = year;
         this.month = month;
-        this.totalWorkHour = totalWorkHour;
+        this.totalWorkMinutes = totalWorkMinutes;
         this.workDays = workDays;
-        this.overtimeWorkHour = overtimeWorkHour;
-        this.holidayWorkHour = holidayWorkHour;
+        this.overtimeWorkMinutes = overtimeWorkMinutes;
+        this.holidayWorkMinutes = holidayWorkMinutes;
         this.weeklyHolidayDays = weeklyHolidayDays;
     }
 
-    public void update(int workDays, int totalWorkHour, int overtimeWorkHour,
-                       int holidayWorkHour, int weeklyHolidayDays){
+    public void add(AttendanceRecord attendanceRecord){
+        if(attendanceRecord.getWorkMinutes() > 0 ||
+                attendanceRecord.getOvertimeWorkMinutes() > 0 ||
+                attendanceRecord.getHolidayWorkMinutes() > 0){
+            this.workDays++;
+        }
+
+        this.totalWorkMinutes += attendanceRecord.getWorkMinutes();
+        this.overtimeWorkMinutes += attendanceRecord.getOvertimeWorkMinutes();
+        this.holidayWorkMinutes += attendanceRecord.getHolidayWorkMinutes();
+    }
+
+    public void update(int workDays, int totalWorkMinutes, int overtimeWorkMinutes,
+                       int holidayWorkMinutes, int weeklyHolidayDays){
         this.workDays = workDays;
-        this.totalWorkHour = totalWorkHour;
-        this.overtimeWorkHour = overtimeWorkHour;
-        this.holidayWorkHour = holidayWorkHour;
+        this.totalWorkMinutes = totalWorkMinutes;
+        this.overtimeWorkMinutes = overtimeWorkMinutes;
+        this.holidayWorkMinutes = holidayWorkMinutes;
+        this.weeklyHolidayDays = weeklyHolidayDays;
+    }
+
+    public void updateWeeklyHolidayDays(int weeklyHolidayDays){
         this.weeklyHolidayDays = weeklyHolidayDays;
     }
 }

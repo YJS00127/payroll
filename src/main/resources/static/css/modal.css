@@ -81,6 +81,11 @@
     border-color: #3b82f6;
 }
 
+.modal-field.full-width {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+}
+
 /* 버튼 영역 */
 .modal-buttons {
     display: flex;
@@ -106,9 +111,10 @@
     color: white;
 }
 
-/* 작은 화면에서는 1열 */
-@media (max-width: 600px) {
-    #modalFields {
-        grid-template-columns: 1fr;
-    }
+.modal-field input:disabled {
+    background-color: #f0f0f0;
+    color: #777;
+    border-color: #ddd;
+    cursor: not-allowed;
+    opacity: 1;
 }

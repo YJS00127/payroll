@@ -19,4 +19,19 @@ public class ViewController {
     public String attendance(){
         return "attendance";
     }
+
+    @GetMapping("/work")
+    public String work(){
+        return "work";
+    }
+
+    @GetMapping("/insurance")
+    public String insurance(){
+        return "insurance";
+    }
+
+    @GetMapping("/salary")
+    public String salary() {
+        return "salary";
+    }
 }

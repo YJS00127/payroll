@@ -3,6 +3,7 @@ package payroll.leave.dto;
 import payroll.entity.LeaveRecord;
 
 public class LeaveResponseDTO {
+    private Long id;
     private String empCode;
     private String empName;
     private int year;
@@ -12,6 +13,7 @@ public class LeaveResponseDTO {
 
     public LeaveResponseDTO(LeaveRecord leaveRecord,
                             String empCode, String empName){
+        this.id = leaveRecord.getId();
         this.empCode = empCode;
         this.empName = empName;
         this.year = leaveRecord.getYear();

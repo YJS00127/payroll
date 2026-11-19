@@ -1,5 +1,5 @@
-function createSearchBox(fields, onSearch){
-    const searchBox = document.getElementById("searchBox");
+function createSearchBox(fields, onSearch, targetId = "searchBox"){
+    const searchBox = document.getElementById(targetId);
 
     searchBox.innerHTML = "";
 

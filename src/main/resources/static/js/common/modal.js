@@ -33,8 +33,11 @@ function openModal({title, fields, values = {}, onSubmit}) {
 
         input.name = field.name;
         input.id = `modal-${field.name}`;
-        input.required = field.required ?? false;
+        input.disabled = field.disabled ?? false;
         input.readOnly = field.readOnly ?? false;
+        if(field.min !== undefined) input.min = field.min;
+        if(field.max !== undefined) input.max = field.max;
+        if (field.step !== undefined) input.step = field.step;
         input.value = values[field.name] ?? field.value ?? "";
 
         if(field.type === "checkbox"){

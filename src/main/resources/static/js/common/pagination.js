@@ -7,7 +7,7 @@ function createPagination(pageData, onPageChange) {
     const totalPages = pageData.totalPages;
     const pageGroupSize = pageData.pageable.pageSize;
 
-    if(totalPages === 1 || pageData === null) return;
+    if(totalPages === 1) return;
 
     const startPage = Math.floor(currentPage / pageGroupSize) * pageGroupSize;
     const endPage = Math.min(startPage + pageGroupSize, totalPages);

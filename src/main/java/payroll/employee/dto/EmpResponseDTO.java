@@ -17,7 +17,7 @@ public class EmpResponseDTO {
     private LocalDate joiningDate;
     private int hourlyWage;
     private int initialMonthlyIncome;
-    private int contractDailyWorkHour;
+    private int contractDailyWorkMinutes;
 
     public EmpResponseDTO(Employee employee, String deptName){
         this.id = employee.getId();
@@ -30,6 +30,6 @@ public class EmpResponseDTO {
         this.joiningDate = employee.getJoiningDate();
         this.hourlyWage = employee.getHourlyWage();
         this.initialMonthlyIncome = employee.getInitialMonthlyIncome();
-        this.contractDailyWorkHour = employee.getContractDailyWorkHour();
+        this.contractDailyWorkMinutes = employee.getContractDailyWorkMinutes();
     }
 }

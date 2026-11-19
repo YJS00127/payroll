@@ -72,7 +72,7 @@
 }
 
 /* 검색 영역 */
-#searchBox {
+#searchBox, #salaryEditSearchBox, #salaryHistorySearchBox  {
     display: flex;
     gap: 10px;
     align-items: center;
@@ -81,7 +81,11 @@
 
 /* 검색 입력창, 선택창 */
 #searchBox input,
-#searchBox select {
+#searchBox select,
+#salaryEditSearchBox input,
+#salaryEditSearchBox select,
+#salaryHistorySearchBox input,
+#salaryHistorySearchBox select {
     padding: 9px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
@@ -89,8 +93,8 @@
 }
 
 /* 공통 버튼 */
-#searchBox button,
-.list-header button {
+#searchBox button, #salaryEditSearchBox button,
+#salaryHistorySearchBox button, .list-header button {
     padding: 9px 16px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
@@ -101,6 +105,8 @@
 
 /* 버튼 hover */
 #searchBox button:hover,
+#salaryEditSearchBox button:hover,
+#salaryHistorySearchBox button:hover,
 .list-header button:hover {
     background: #f1f5f9;
 }
@@ -147,28 +153,16 @@
     margin-left: auto;
 }
 
-.list-tabs {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #71869a;
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
-.list-tabs button {
-    padding: 12px 24px;
-    border: none;
-    background: transparent;
-    color: #777;
-    font-size: 14px;
-    cursor: pointer;
+.tab-content {
+    display: none;
 }
 
-.list-tabs button:hover {
-    background: #f4f5f6;
-}
-
-.list-tabs button.active {
-    background: #71869a;
-    color: white;
-    font-weight: bold;
+.tab-content.active {
+    display: block;
 }

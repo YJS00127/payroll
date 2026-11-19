@@ -2,36 +2,36 @@ package payroll.workHistory;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import payroll.common.dto.ResultDTO;
 import payroll.workHistory.dto.WorkRequestDTO;
 import payroll.workHistory.dto.WorkResponseDTO;
+import payroll.workHistory.dto.WorkSearchDTO;
 import payroll.workHistory.dto.WorkUpdateRequestDTO;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/work-history")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class WorkController {
 
     private final WorkService workService;
 
-    @GetMapping
-    public ResponseEntity<Page<WorkResponseDTO>> findWorkAll(@RequestBody WorkRequestDTO requestDTO,
-                                                            @PageableDefault(size=10)Pageable pageable){
-        return ResponseEntity.ok(workService.findAllByEmpId(requestDTO, pageable));
+    @GetMapping("/work-history")
+    public ResponseEntity<List<WorkResponseDTO>> findWorkAll(@ModelAttribute WorkSearchDTO searchDTO){
+        return ResponseEntity.ok(workService.findWork(searchDTO));
     }
 
-    @PutMapping("/{id}")
-    public ResultDTO updateWorkHistory(@RequestBody @Valid WorkUpdateRequestDTO updateRequestDTO){
-        return workService.updateWorkHistory(updateRequestDTO);
-    }
-
-//    @DeleteMapping("/{id}")
-//    public ResultDTO deleteWorkHistory(@PathVariable Long id){
-//        return workService.deleteWorkHistory(id);
+//    @PostMapping("/work-history")
+//    public ResponseEntity<ResultDTO> saveWorkHistory(@RequestBody WorkRequestDTO requestDTO){
+//        return ResponseEntity.ok(workService.saveWorkHistory(requestDTO));
 //    }
+//
+//    @PutMapping("/work-history/{id}")
+//    public ResponseEntity<ResultDTO> updateWorkHistory(@RequestBody @Valid WorkUpdateRequestDTO requestDTO){
+//        return ResponseEntity.ok(workService.updateWorkHistory(requestDTO));
+//    }
+
 }

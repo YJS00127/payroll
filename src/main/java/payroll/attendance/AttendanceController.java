@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class AttendanceController {
 
     @GetMapping("/attendance")
     public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@ModelAttribute @Valid AttendanceSearchDTO searchDTO,
-                                                                     @PageableDefault(size=10)Pageable pageable){
+                                                                     @PageableDefault(size=10, sort = {"workDate", "id"})Pageable pageable){
         return ResponseEntity.ok(attendanceService.getAttendance(searchDTO, pageable));
     }
 
@@ -37,10 +38,10 @@ public class AttendanceController {
         return ResponseEntity.ok(attendanceService.saveAttendance(requestDTO));
     }
 
-    @PostMapping("/attendances")
-    public ResponseEntity<ResultDTO> createAttendances(@RequestBody @Valid List<AttendanceRequestDTO> requestDTO){
-        return ResponseEntity.ok(attendanceService.saveAttendanceAll(requestDTO));
-    }
+//    @PostMapping("/attendances")
+//    public ResponseEntity<ResultDTO> createAttendances(@RequestBody @Valid List<AttendanceRequestDTO> requestDTO){
+//        return ResponseEntity.ok(attendanceService.saveAttendanceAll(requestDTO));
+//    }
 
     @PutMapping("/attendance/{id}")
     public ResponseEntity<ResultDTO> updateAttendance(@PathVariable Long id,

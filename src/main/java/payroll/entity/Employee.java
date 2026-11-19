@@ -1,6 +1,8 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,8 +67,8 @@ public class Employee {
     private LocalDate retirementDate;
 
     @Comment("계약 일일 근로시간")
-    @Column(name = "contract_daily_work_hour")
-    private int contractDailyWorkHour;
+    @Column(name = "contract_daily_work_minutes")
+    private int contractDailyWorkMinutes;
 
     @Comment("최초 월평균 급여")
     @Column(name = "initial_monthly_income")
@@ -74,7 +76,7 @@ public class Employee {
 
     @Builder
     public Employee(Long deptId, String name, String code, LocalDate birth, String gender, String rank, LocalDate joiningDate,
-                    LocalDate retirementDate, int hourlyWage, int contractDailyWorkHour,int initialMonthlyIncome){
+                    LocalDate retirementDate, int hourlyWage, int contractDailyWorkMinutes,int initialMonthlyIncome){
         this.deptId = deptId;
         this.name = name;
         this.code = code;
@@ -84,7 +86,7 @@ public class Employee {
         this.joiningDate = joiningDate;
         this.hourlyWage = hourlyWage;
         this.retirementDate = retirementDate;
-        this.contractDailyWorkHour = contractDailyWorkHour;
+        this.contractDailyWorkMinutes = contractDailyWorkMinutes;
         this.initialMonthlyIncome = initialMonthlyIncome;
     }
 
@@ -98,8 +100,12 @@ public class Employee {
         this.joiningDate = request.getJoiningDate();
         this.hourlyWage = request.getHourlyWage();
         this.retirementDate = request.getRetirementDate();
-        this.contractDailyWorkHour = request.getContractDailyWorkHour();
+        this.contractDailyWorkMinutes = (int)(request.getContractDailyWorkHour() * 60);
         this.initialMonthlyIncome = request.getInitialMonthlyIncome();
+    }
+
+    public void updateHourlyWage(int hourlyWage){
+        this.hourlyWage = hourlyWage;
     }
 
     public void delete(){

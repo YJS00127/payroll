@@ -3,6 +3,7 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.insuranceRate.dto.InsuranceRateRequestDTO;
 
@@ -11,7 +12,8 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "insurance_rate")
+@Table(name = "insurance_rate_history")
+@NoArgsConstructor
 public class InsuranceRateHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "insurance_rate_seq")

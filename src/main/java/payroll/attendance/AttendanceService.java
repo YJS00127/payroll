@@ -20,7 +20,7 @@ public interface AttendanceService {
 
 //    ResultDTO saveAttendanceById(AttendanceResponseDTO requestDTO);
 
-    ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs);
+//    ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs);
 
     ResultDTO updateAttendance(Long id, AttendanceRequestDTO requestDTO);
 

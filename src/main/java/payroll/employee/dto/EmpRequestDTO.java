@@ -1,5 +1,6 @@
 package payroll.employee.dto;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,12 +28,13 @@ public class EmpRequestDTO {
     private String deleteYn;
     private LocalDate createdAt;
     @NotNull(message = "시급은 필수 입력값입니다.")
-    @Min(value = 0, message = "시급은 음수일 수 없습니다.")
+//    @Max(value=80000, message="시급")
+    @Min(value=0, message = "시급은 음수일 수 없습니다.")
     private int hourlyWage;
     private LocalDate retirementDate;
     @NotNull
     @Min(value = 1, message = "다시 입력해주세요.")
-    private int contractDailyWorkHour;
+    private int contractDailyWorkMinutes;
     @NotNull
     private int initialMonthlyIncome;
 
@@ -47,7 +49,7 @@ public class EmpRequestDTO {
                 .gender(this.gender)
                 .hourlyWage(this.hourlyWage)
                 .retirementDate(this.retirementDate)
-                .contractDailyWorkHour(this.contractDailyWorkHour)
+                .contractDailyWorkMinutes(this.contractDailyWorkMinutes)
                 .initialMonthlyIncome(this.initialMonthlyIncome)
                 .build();
     }

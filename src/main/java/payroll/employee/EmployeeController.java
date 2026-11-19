@@ -52,8 +52,8 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.deleteEmp(id));
     }
 
-    @DeleteMapping("/emps")
+    @DeleteMapping("/emp")
     public ResponseEntity<ResultDTO> deleteEmpAll(@RequestBody List<Long> id){
-        return ResponseEntity.ok(employeeService.deleteEmpAll(id));
+        return ResponseEntity.ok(employeeService.deleteEmps(id));
     }
 }

@@ -1,13 +1,8 @@
 package payroll.holiday;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,27 +11,11 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class HolidayService {
 
-    @Value("${holiday.api-key}")
-    private String apiKey;
-
-    private final CacheManager cacheManager;
-
-    private final RestClient restClient = RestClient.create("https://apis.data.go.kr");
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HolidayApiService holidayApiService;
 
     public JsonNode getHolidays(int year, int month){
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/B090041/openapi/service/SpcdeInfoService/getRestDeInfo")
-                        .queryParam("serviceKey", apiKey)
-                        .queryParam("solYear", year)
-                        .queryParam("solMonth", String.format("%02d", month))
-                        .queryParam("_type", "json")
-                        .build())
-                .retrieve()
-                .body(JsonNode.class);
+        System.out.println(holidayApiService.getHolidays(year, month));
+        return holidayApiService.getHolidays(year, month);
     }
 
     public boolean isHoliday(LocalDate date){
@@ -47,6 +26,12 @@ public class HolidayService {
                 .path("body")
                 .path("items")
                 .path("item");
+
+        if(items.isObject()){
+            return items.path("locdate").asString()
+                    .equals(date.format(DateTimeFormatter.BASIC_ISO_DATE))
+                    && items.path("isHoliday").asString().equals("Y");
+        }
 
         for(JsonNode item : items){
             LocalDate holidayDate = LocalDate.parse(

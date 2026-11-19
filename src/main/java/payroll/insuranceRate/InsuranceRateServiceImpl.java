@@ -4,8 +4,6 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +17,7 @@ import payroll.repository.InsuranceRateHistoryRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,19 +25,27 @@ public class InsuranceRateServiceImpl implements InsuranceRateService{
     private final InsuranceRateHistoryRepository insuranceRateHistoryRepository;
 
     @Override
-    public Page<InsuranceRateResponseDTO> findInsuranceRate(InsuranceRateSearchDTO searchDTO, Pageable pageable){
+    public List<InsuranceRateResponseDTO> findInsuranceRate(InsuranceRateSearchDTO searchDTO){
         Specification<InsuranceRateHistory> spec = createSpec(searchDTO);
 
-        return insuranceRateHistoryRepository.findAll(spec, pageable)
-                .map(InsuranceRateResponseDTO::new);
+        return insuranceRateHistoryRepository.findAll(spec).stream()
+                .map(InsuranceRateResponseDTO::new)
+                .toList();
+    }
+
+    @Override
+    public InsuranceRateResponseDTO findInsuranceRateById(Long id){
+        InsuranceRateHistory insurance = insuranceRateHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 공제율 정보입니다"));
+        return new InsuranceRateResponseDTO(insurance);
     }
 
     @Override
     @Transactional
     public ResultDTO saveInsuranceRate(InsuranceRateRequestDTO requestDTO){
         LocalDate effectiveDate = LocalDate.of(requestDTO.getYear(), requestDTO.getMonth(), 1);
-        if(insuranceRateHistoryRepository.existsInsuranceRateHistory(effectiveDate)){
-            throw new EntityExistsException("이미 반영된 공제율이 존재합니다.");
+        if(insuranceRateHistoryRepository.existsByEffectiveDate(effectiveDate)){
+            throw new EntityExistsException("이미 반영 공제율이 존재합니다");
         }
 
         InsuranceRateHistory newInsuranceRate = requestDTO.toEntity();
@@ -47,29 +54,53 @@ public class InsuranceRateServiceImpl implements InsuranceRateService{
                 .orElse(null);
 
         if(previousInsuranceRate != null && isSame(previousInsuranceRate, newInsuranceRate)){
-            throw new IllegalArgumentException("이전 공제율과 일치합니다.");
+            throw new IllegalArgumentException("이전 공제율과 일치합니다");
         }
 
         insuranceRateHistoryRepository.save(newInsuranceRate);
 
-        return new ResultDTO("success", "새 공제율 반영 성공");
+        return new ResultDTO("success", "공제율 등록 성공");
     }
 
     @Override
     @Transactional
-    public ResultDTO updateInsuranceRate(Long id, InsuranceRateRequestDTO requestDTO){
+    public ResultDTO updateInsuranceRate(Long id,InsuranceRateRequestDTO requestDTO){
         InsuranceRateHistory previousInsuranceRate = insuranceRateHistoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 공제율 정보입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 공제율 정보입니다"));
         InsuranceRateHistory newInsuranceRate = requestDTO.toEntity();
 
         if(isSame(previousInsuranceRate, newInsuranceRate) &&
         previousInsuranceRate.getEffectiveDate().equals(newInsuranceRate.getEffectiveDate())){
-            throw new IllegalArgumentException("변경점이 없습니다.");
+            throw new IllegalArgumentException("이전 공제율과 일치합니다");
         }
-
         previousInsuranceRate.update(requestDTO);
 
-        return new ResultDTO("success", "공제율 수정 완료");
+        return new ResultDTO("success", "공제율 수정 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO deleteInsuranceRate(Long id){
+        InsuranceRateHistory insurance = insuranceRateHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 공제율 정보입니다"));
+
+        insuranceRateHistoryRepository.delete(insurance);
+
+        return new ResultDTO("success", "공제율 삭제 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO deleteInsuranceRates(List<Long> ids){
+        List<InsuranceRateHistory> insurances = insuranceRateHistoryRepository.findAllById(ids);
+
+        if(insurances.size() != Set.copyOf(ids).size()){
+            throw new IllegalArgumentException("존재하지 않는 공제율 정보가 포함되어있습니다");
+        }
+
+        insuranceRateHistoryRepository.deleteAll(insurances);
+
+        return new ResultDTO("success", "공제율 삭제 성공");
     }
 
 

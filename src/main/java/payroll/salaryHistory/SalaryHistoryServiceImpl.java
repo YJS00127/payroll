@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import payroll.common.dto.ResultDTO;
+import payroll.employee.EmployeeService;
 import payroll.entity.Employee;
 import payroll.entity.SalaryHistory;
 import payroll.repository.EmployeeRepository;
@@ -18,7 +19,6 @@ import payroll.salaryHistory.dto.SalaryHistoryRequestDTO;
 import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +27,7 @@ import java.util.List;
 public class SalaryHistoryServiceImpl implements SalaryHistoryService{
     private final SalaryHistoryRepository salaryHistoryRepository;
     private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
     @Override
     public Page<SalaryHistoryResponseDTO> findSalaryHistory(SalaryHistorySearchDTO searchDTO,
@@ -46,18 +47,24 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
     }
 
     @Override
-    @Transactional
-    public void saveSalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage,
-                                       LocalDate effectiveDate, String reason) {
-        SalaryHistory salaryHistory = SalaryHistory.builder()
-                .empId(empId)
-                .previousHourlyWage(previousHourlyWage)
-                .newHourlyWage(newHourlyWage)
-                .effectiveDate(effectiveDate)
-                .reason(reason)
-                .build();
+    public SalaryHistoryResponseDTO findSalaryHistoryById(Long id){
+        SalaryHistory salary = salaryHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 기록입니다"));
 
+        Employee emp = employeeRepository.findById(salary.getEmpId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+
+        return new SalaryHistoryResponseDTO(salary, emp.getCode(), emp.getName());
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO saveSalaryHistory(SalaryHistoryRequestDTO requestDTO) {
+        SalaryHistory salaryHistory = requestDTO.toEntity();
         salaryHistoryRepository.save(salaryHistory);
+
+        employeeService.updateHourlyWage(requestDTO.getEmpId(), requestDTO.getNewHourlyWage());
+        return new ResultDTO("success", "급여 변경 성공");
     }
 
     @Override
@@ -88,23 +95,20 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
         return(root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(StringUtils.hasText(searchDTO.getEmpCode())){
-                predicates.add(cb.like(
-                        root.get("empCode"),
-                        "%" + searchDTO.getEmpCode() + "%"
-                ));
+            if(StringUtils.hasText(searchDTO.getKeyword())){
+                String keyword = searchDTO.getKeyword().trim();
+                Long empId = employeeRepository.findIdByNameOrCode(keyword);
+                predicates.add(cb.or(cb.equal(root.get("empId"), empId)));
             }
 
-            if(searchDTO.getYear() != null){
-                predicates.add(cb.equal(root.get("year"), searchDTO.getYear()));
+            if (searchDTO.getYear() != null) {
+                predicates.add(cb.equal(cb.function("YEAR", Integer.class, root.get("effectiveDate")), searchDTO.getYear()));
             }
-
-            if(searchDTO.getMonth() != null){
-                predicates.add(cb.equal(root.get("month"), searchDTO.getMonth()));
+            if (searchDTO.getMonth() != null) {
+                predicates.add(cb.equal(cb.function("MONTH", Integer.class, root.get("effectiveDate")), searchDTO.getMonth()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
 }

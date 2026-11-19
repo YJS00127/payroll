@@ -12,15 +12,15 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class DeptRequestDTO {
-    @NotBlank
+    @NotBlank(message="부서명은 필수 입력값입니다")
     @Size(max = 50)
     private String name;
 
-    @NotBlank
+    @NotBlank(message="부서코드는 필수 입력값입니다")
     @Size(max = 50)
     private String code;
 
-    @NotNull
+    @NotNull(message="부서생성일은 필수 입력값입니다")
     private LocalDate createdDeptDate;
 
     public Department toEntity(){

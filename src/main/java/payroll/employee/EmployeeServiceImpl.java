@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import payroll.common.dto.ResultDTO;
 import payroll.employee.dto.*;
 import payroll.entity.*;
@@ -27,7 +28,6 @@ public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final LeaveRecordRepository leaveRecordRepository;
-    private final SalaryHistoryService salaryHistoryService;
 
     @Override
     public Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable){
@@ -54,11 +54,11 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     public ResultDTO createEmp(EmpRequestDTO requestDTO) {
         Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
         Employee emp = requestDTO.toEntity(deptId);
 
         if(employeeRepository.existsByCode(emp.getCode())){
-            throw new EntityExistsException("해당 코드의 사원이 이미 존재합니다.");
+            throw new EntityExistsException("해당 코드의 사원이 이미 존재합니다");
         }
 
         Employee saved = employeeRepository.save(emp);
@@ -78,7 +78,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     public ResultDTO createEmpAll(List<EmpRequestDTO> requestDTOs){
         if(requestDTOs == null || requestDTOs.isEmpty()){
-            throw new IllegalArgumentException("등록할 사원이 입력되지 않았습니다.");
+            throw new IllegalArgumentException("등록할 사원이 입력되지 않았습니다");
         }
 
         Set<String> codes = requestDTOs.stream()
@@ -86,11 +86,11 @@ public class EmployeeServiceImpl implements EmployeeService{
                 .collect(Collectors.toSet());
 
         if(codes.size() != requestDTOs.size()){
-            throw new EntityExistsException("중복되는 사원코드가 존재합니다.");
+            throw new EntityExistsException("중복되는 사원코드가 존재합니다");
         }
 
         if(employeeRepository.existsByCodeIn(codes)){
-            throw new EntityExistsException("이미 등록된 사원코드가 존재합니다.");
+            throw new EntityExistsException("이미 등록된 사원코드가 존재합니다");
         }
 
         Set<String> deptNames = requestDTOs.stream()
@@ -130,10 +130,10 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     public ResultDTO updateEmp(Long id, EmpUpdateRequestDTO requestDTO){
         Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
 
         Employee emp = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
         // 변경 전, 후 급여
         int previousHourlyWage = emp.getHourlyWage();
         int newHourlyWage = requestDTO.getHourlyWage();
@@ -142,19 +142,11 @@ public class EmployeeServiceImpl implements EmployeeService{
             String reason = requestDTO.getReason();
             LocalDate effectiveDate = requestDTO.getEffectiveDate();
             if(reason == null || reason.isBlank()){
-                throw new IllegalArgumentException("급여 변경 시 변경 사유는 필수 입력값입니다.");
+                throw new IllegalArgumentException("급여 변경 시 변경 사유는 필수 입력값입니다");
             }
             if(effectiveDate == null){
-                throw new IllegalArgumentException("급여 변경 시 변경 급여 반영일은 필수 입력값입니다.");
+                throw new IllegalArgumentException("급여 변경 시 변경 급여 반영일은 필수 입력값입니다");
             }
-
-            salaryHistoryService.saveSalaryHistory(
-                    emp.getId(),
-                    previousHourlyWage,
-                    newHourlyWage,
-                    requestDTO.getEffectiveDate(),
-                    requestDTO.getReason()
-            );
         }
         emp.update(requestDTO, deptId);
 
@@ -163,9 +155,18 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
+    public void updateHourlyWage(Long id, int hourlyWage){
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+
+        employee.updateHourlyWage(hourlyWage);
+    }
+
+    @Override
+    @Transactional
     public ResultDTO deleteEmp(Long id){
         Employee emp = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
         emp.delete();
 
@@ -174,17 +175,17 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public ResultDTO deleteEmpAll(List<Long> id){
+    public ResultDTO deleteEmps(List<Long> id){
         List<Employee> employees = employeeRepository.findAllById(id);
 
         if(employees.size() != Set.copyOf(id).size()
         || employees.stream().allMatch(emp -> emp.getDeleteYn().equals("Y"))){
-            throw new EntityNotFoundException("존재하지 않는 사원이 포함되어있습니다.");
+            throw new IllegalArgumentException("존재하지 않는 사원이 포함되어있습니다");
         }
 
         employees.forEach(Employee::delete);
 
-        return new ResultDTO("success", "사원 다중 삭제 성공");
+        return new ResultDTO("success", "사원 삭제 성공");
     }
 
     private Specification<Employee> createSpec(EmpSearchDTO searchDTO){
@@ -195,13 +196,13 @@ public class EmployeeServiceImpl implements EmployeeService{
 
             if(StringUtils.hasText(searchDTO.getDeptName())){
                 Long deptId = departmentRepository.findIdByName(searchDTO.getDeptName())
-                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다."));
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
                 predicates.add(cb.equal(root.get("deptId"), deptId));
             }
 
             if(StringUtils.hasText(searchDTO.getKeyword())){
 
-                String keyword = searchDTO.getKeyword().trim() + "%";
+                String keyword = searchDTO.getKeyword().trim();
 
                 predicates.add(cb.or(
                         cb.like(root.get("name"), keyword),

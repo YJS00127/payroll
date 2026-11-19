@@ -1,6 +1,7 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,16 +41,16 @@ public class AttendanceRecord {
     private LocalTime checkOut;
 
     @Comment("일별 근로 시간")
-    @Column(name = "work_hour")
-    private int workHour;
+    @Column(name = "work_minutes")
+    private int workMinutes;
 
     @Comment("연장근로 시간")
-    @Column(name = "overtime_work_hour")
-    private int overtimeWorkHour;
+    @Column(name = "overtime_work_minutes")
+    private int overtimeWorkMinutes;
 
     @Comment("휴일근로 시간")
-    @Column(name = "holiday_work_hour")
-    private int holidayWorkHour;
+    @Column(name = "holiday_work_minutes")
+    private int holidayWorkMinutes;
 
     @Comment("근로 상태")
     @Column(name = "status")
@@ -57,26 +58,26 @@ public class AttendanceRecord {
 
     @Builder
     public AttendanceRecord(Long empId, LocalDate workDate, LocalTime checkIn, LocalTime checkOut,
-                            int workHour, int overtimeWorkHour, int holidayWorkHour, String status){
+                            int workMinutes, int overtimeWorkMinutes, int holidayWorkMinutes, String status){
         this.empId = empId;
         this.workDate = workDate;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
-        this.workHour = workHour;
-        this.overtimeWorkHour = overtimeWorkHour;
-        this.holidayWorkHour = holidayWorkHour;
+        this.workMinutes = workMinutes;
+        this.overtimeWorkMinutes = overtimeWorkMinutes;
+        this.holidayWorkMinutes = holidayWorkMinutes;
         this.status = status;
     }
 
     public void update(AttendanceRequestDTO requestDTO, Long empId,
-                       int workHour, int overtimeWorkHour, int holidayWorkHour) {
+                       int workMinutes, int overtimeWorkMinutes, int holidayWorkMinutes) {
         this.empId = empId;
         this.workDate = requestDTO.getWorkDate();
         this.checkIn = requestDTO.getCheckIn();
         this.checkOut = requestDTO.getCheckOut();
         this.status = requestDTO.getStatus();
-        this.workHour = workHour;
-        this.overtimeWorkHour = overtimeWorkHour;
-        this.holidayWorkHour = holidayWorkHour;
+        this.workMinutes = workMinutes;
+        this.overtimeWorkMinutes = overtimeWorkMinutes;
+        this.holidayWorkMinutes = holidayWorkMinutes;
     }
 }

@@ -47,14 +47,13 @@ async function saveDept(data){
     const result = await response.json();
 
     if(!response.ok || result.result === "fail") {
-        throw new Error("부서 등록 실패");
+        throw new Error(result.message || "부서 등록 실패");
     }
 
     alert(result.message);
 }
 
 async function editDept(dept){
-    console.log(dept.id)
     const response = await fetch(`/api/dept/${dept.id}`);
     const deptData = await response.json();
     openModal({

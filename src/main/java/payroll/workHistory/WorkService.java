@@ -1,21 +1,24 @@
 package payroll.workHistory;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
 import payroll.workHistory.dto.WorkRequestDTO;
 import payroll.workHistory.dto.WorkResponseDTO;
+import payroll.workHistory.dto.WorkSearchDTO;
 import payroll.workHistory.dto.WorkUpdateRequestDTO;
 
+import java.util.List;
+
 public interface WorkService {
-    Page<WorkResponseDTO> findAllByEmpId(WorkRequestDTO requestDTO, Pageable pageable);
+    List<WorkResponseDTO> findWork(WorkSearchDTO searchDTO);
 
-    void saveWorkHistory(WorkRequestDTO requestDTO);
+    WorkResponseDTO findWorkById(Long id);
 
-    ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO);
+    void autoSaveWork(AttendanceRecord attendanceRecord);
 
-    void autoUpdateWorkHistory(AttendanceRecord attendanceRecord);
+//    ResultDTO saveWorkHistory(WorkRequestDTO requestDTO);
 
-//    ResultDTO deleteWorkHistory(Long id);
+//    ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO);
+
+    void autoUpdateWorkHistory(Long empId, int year, int month);
 }

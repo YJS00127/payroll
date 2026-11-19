@@ -10,6 +10,8 @@ import payroll.leaveUsage.dto.LeaveUsageSearchDTO;
 public interface LeaveUsageService {
     Page<LeaveUsageResponseDTO> findLeaveUsage(LeaveUsageSearchDTO searchDTO, Pageable pageable);
 
+    LeaveUsageResponseDTO findLeaveUsageById(Long id);
+
     ResultDTO saveLeaveUsage(LeaveUsageRequestDTO requestDTO);
 
     ResultDTO updateLeaveUsage(Long id, LeaveUsageRequestDTO requestDTO);

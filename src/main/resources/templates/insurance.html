@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/modal.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>공제율 관리</h1>
+<div class="app">
+    <div id="searchBox"></div>
+    <div id="insuranceList">
+        <div class="list-container">
+            <div class="list-header">
+                <div class="button-delete-add">
+                    <button id="deleteSelectedBtn" onclick="delSelectedInsurance()">일괄 삭제</button>
+                    <button id="addBtn" onclick="addInsurance()">등록</button>
+                </div>
+            </div>
+        </div>
+        <table class="list-table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>반영일</th>
+                <th>국민연금 공제율</th>
+                <th>건강보험 공제율</th>
+                <th>노인장기요양 공제율</th>
+                <th>고용보험 공제율</th>
+                <th>주민세 공제율</th>
+                <th>수정/삭제</th>
+            </tr>
+            </thead>
+            <tbody class="insurance-list"></tbody>
+        </table>
+    </div>
+</div>
+<div class="pagination"></div>
+<script src="/js/common/table.js"></script>
+<script src="/js/common/modal.js"></script>
+<script src="/js/common/search.js"></script>
+<script src="/js/common/pagination.js"></script>
+<script src="/js/insurance.js"></script>
+</body>
+</html>

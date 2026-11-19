@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/modal.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/tab.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>급여 변경</h1>
+<div class="app">
+    <div class="tabs">
+        <button class="tab-button active" data-tab="salary-edit">시급 변경</button>
+        <button class="tab-button" data-tab="salary-history">변경 이력</button>
+    </div>
+    <div id="salary-edit" class="tab-content active">
+        <div id="salaryEditSearchBox"></div>
+        <div class="list-header">
+            <span id="totalEmpCount">총 0명</span>
+        </div>
+        <table class="list-table">
+            <thead>
+            <tr>
+                <th>사원명</th>
+                <th>사원코드</th>
+                <th>입사일</th>
+                <th>시급</th>
+                <th>수정</th>
+            </tr>
+            </thead>
+            <tbody class="salary-edit-list"></tbody>
+        </table>
+    </div>
+
+    <div id="salary-history" class="tab-content">
+        <div id="salaryHistorySearchBox"></div>
+        <div class="list-header">
+            <span id="totalSalaryCount">총 0건</span>
+        </div>
+        <table class="list-table">
+            <thead>
+            <tr>
+                <th>사원명</th>
+                <th>사원코드</th>
+                <th>변경일</th>
+                <th>변경 전 시급</th>
+                <th>변경 후 시급</th>
+                <th>변경 사유</th>
+                <th>수정</th>
+            </tr>
+            </thead>
+            <tbody class="salary-history-list"></tbody>
+        </table>
+    </div>
+</div>
+<div class="pagination"></div>
+<script src="/js/common/table.js"></script>
+<script src="/js/common/modal.js"></script>
+<script src="/js/common/search.js"></script>
+<script src="/js/common/pagination.js"></script>
+<script src="/js/common/tabs.js"></script>
+<script src="/js/salary.js"></script>
+</body>
+</html>

@@ -3,12 +3,14 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.leave.dto.LeaveRequestDTO;
 
 @Getter
 @Entity
 @Table(name = "leave_record")
+@NoArgsConstructor
 public class LeaveRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "leave_record_seq")

@@ -12,8 +12,9 @@ import java.time.LocalDate;
 public interface SalaryHistoryService {
     Page<SalaryHistoryResponseDTO> findSalaryHistory(SalaryHistorySearchDTO searchDTO, Pageable pageable);
 
-    void saveSalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage,
-                                LocalDate effectiveDate, String reason);
+    SalaryHistoryResponseDTO findSalaryHistoryById(Long id);
+
+    ResultDTO saveSalaryHistory(SalaryHistoryRequestDTO requestDTO);
 
     ResultDTO updateSalaryHistory(Long id, SalaryHistoryRequestDTO requestDTO);
 

@@ -11,12 +11,7 @@ import java.util.Optional;
 
 public interface InsuranceRateHistoryRepository extends JpaRepository<InsuranceRateHistory, Long>, JpaSpecificationExecutor<InsuranceRateHistory> {
 
-    @Query(value = """
-    SELECT EXISTS (
-        SELECT 1 FROM insurance_rate_history i
-            i.effectiveDate = :effectiveDate)
-    """, nativeQuery = true)
-    boolean existsInsuranceRateHistory(@Param("effectiveDate")LocalDate effectiveDate);
+    boolean existsByEffectiveDate(@Param("effectiveDate")LocalDate effectiveDate);
 
     @Query("SELECT i FROM InsuranceRateHistory i ORDER BY effectiveDate DESC LIMIT 1")
     Optional<InsuranceRateHistory> findRecentInsuranceRate();

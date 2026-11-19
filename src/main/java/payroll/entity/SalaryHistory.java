@@ -3,6 +3,7 @@ package payroll.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.salaryHistory.dto.SalaryHistoryRequestDTO;
 
@@ -10,8 +11,8 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Builder
 @Table(name = "salary_history")
+@NoArgsConstructor
 public class SalaryHistory {
 
     @Id
@@ -37,6 +38,15 @@ public class SalaryHistory {
     @Comment("급여 변경 사유")
     @Column(name = "reason")
     private String reason;
+
+    @Builder
+    public SalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage, LocalDate effectiveDate, String reason){
+        this.empId = empId;
+        this.previousHourlyWage = previousHourlyWage;
+        this.newHourlyWage = newHourlyWage;
+        this.effectiveDate = effectiveDate;
+        this.reason = reason;
+    }
 
     public void update(SalaryHistoryRequestDTO requestDTO){
         this.previousHourlyWage = requestDTO.getPreviousHourlyWage();
