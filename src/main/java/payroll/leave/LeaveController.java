@@ -11,29 +11,47 @@ import payroll.common.dto.ResultDTO;
 import payroll.leave.dto.LeaveRequestDTO;
 import payroll.leave.dto.LeaveResponseDTO;
 import payroll.leave.dto.LeaveSearchDTO;
+import payroll.leave.dto.LeaveUpdateRequestDTO;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/leave")
+@RequestMapping("/api/leave-record")
 @RequiredArgsConstructor
 public class LeaveController {
 
     private final LeaveService leaveService;
 
     @GetMapping
-    public ResponseEntity<Page<LeaveResponseDTO>> getAllLeaves(@RequestBody LeaveSearchDTO searchDTO,
-                                                               @PageableDefault(size=10)Pageable pageable){
-        return ResponseEntity.ok(leaveService.findAllLeaves(searchDTO, pageable));
+    public ResponseEntity<Page<LeaveResponseDTO>> getLeaveAll(@ModelAttribute LeaveSearchDTO searchDTO,
+                                                              @PageableDefault(size=10)Pageable pageable){
+        return ResponseEntity.ok(leaveService.findLeaveAll(searchDTO, pageable));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LeaveResponseDTO> getLeaveBId(@PathVariable Long id){
+        return ResponseEntity.ok(leaveService.findLeaveById(id));
     }
 
     @PostMapping
     public ResponseEntity<ResultDTO> insertLeave(@RequestBody @Valid LeaveRequestDTO requestDTO){
-        return ResponseEntity.ok(leaveService.insertLeave(requestDTO));
+        return ResponseEntity.ok(leaveService.saveLeave(requestDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResultDTO> updateLeave(@RequestBody @Valid LeaveRequestDTO requestDTO,
-                                                      Long id){
+    public ResponseEntity<ResultDTO> updateLeave(@RequestBody @Valid LeaveUpdateRequestDTO requestDTO,
+                                                 @PathVariable Long id){
         return ResponseEntity.ok(leaveService.updateLeave(id, requestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResultDTO> deleteLeave(@PathVariable Long id){
+        return ResponseEntity.ok(leaveService.deleteLeave(id));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ResultDTO> deleteSelectedIds(@RequestBody List<Long> ids){
+        return ResponseEntity.ok(leaveService.deleteSelectedLeave(ids));
     }
 
 }

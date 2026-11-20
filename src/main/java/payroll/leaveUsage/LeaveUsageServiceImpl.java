@@ -217,12 +217,10 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         return((root, query, cb) ->{
             List<Predicate> predicates = new ArrayList<>();
 
-            Long empId = employeeRepository.findIdByCode(searchDTO.getEmpCode())
-                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
-
             predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
-            if(StringUtils.hasText(searchDTO.getEmpCode())) {
+            if(StringUtils.hasText(searchDTO.getKeyword())) {
+                Long empId = employeeRepository.findIdByNameOrCode(searchDTO.getKeyword());
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
             if(searchDTO.getYear() != null){

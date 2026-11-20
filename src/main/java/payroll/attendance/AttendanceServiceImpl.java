@@ -63,6 +63,11 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     @Transactional
     public ResultDTO saveAttendance(AttendanceRequestDTO requestDTO) {
+        if((requestDTO.getEmpCode() == null || !StringUtils.hasText(requestDTO.getEmpCode())) &&
+                (requestDTO.getEmpName() == null || !StringUtils.hasText(requestDTO.getEmpName()))){
+            throw new IllegalArgumentException("사원을 선택해주세요");
+        }
+
         Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
@@ -280,9 +285,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             }
             if (searchDTO.getMonth() != null) {
                 predicates.add(cb.equal(cb.function("MONTH", Integer.class, root.get("workDate")), searchDTO.getMonth()));
-            }
-            if (searchDTO.getDay() != null) {
-                predicates.add(cb.equal(cb.function("DAY", Integer.class, root.get("workDate")), searchDTO.getDay()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

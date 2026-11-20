@@ -6,11 +6,20 @@ import payroll.common.dto.ResultDTO;
 import payroll.leave.dto.LeaveRequestDTO;
 import payroll.leave.dto.LeaveResponseDTO;
 import payroll.leave.dto.LeaveSearchDTO;
+import payroll.leave.dto.LeaveUpdateRequestDTO;
+
+import java.util.List;
 
 public interface LeaveService {
-    Page<LeaveResponseDTO> findAllLeaves(LeaveSearchDTO searchDTO, Pageable pageable);
+    Page<LeaveResponseDTO> findLeaveAll(LeaveSearchDTO searchDTO, Pageable pageable);
 
-    ResultDTO insertLeave(LeaveRequestDTO requestDTO);
+    LeaveResponseDTO findLeaveById(Long id);
 
-    ResultDTO updateLeave(Long id, LeaveRequestDTO requestDTO);
+    ResultDTO saveLeave(LeaveRequestDTO requestDTO);
+
+    ResultDTO updateLeave(Long id, LeaveUpdateRequestDTO requestDTO);
+
+    ResultDTO deleteLeave(Long id);
+
+    ResultDTO deleteSelectedLeave(List<Long> ids);
 }

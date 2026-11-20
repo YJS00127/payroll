@@ -14,7 +14,6 @@ public class HolidayService {
     private final HolidayApiService holidayApiService;
 
     public JsonNode getHolidays(int year, int month){
-        System.out.println(holidayApiService.getHolidays(year, month));
         return holidayApiService.getHolidays(year, month);
     }
 

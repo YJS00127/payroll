@@ -134,20 +134,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
-        // 변경 전, 후 급여
-        int previousHourlyWage = emp.getHourlyWage();
-        int newHourlyWage = requestDTO.getHourlyWage();
 
-        if(previousHourlyWage != newHourlyWage){
-            String reason = requestDTO.getReason();
-            LocalDate effectiveDate = requestDTO.getEffectiveDate();
-            if(reason == null || reason.isBlank()){
-                throw new IllegalArgumentException("급여 변경 시 변경 사유는 필수 입력값입니다");
-            }
-            if(effectiveDate == null){
-                throw new IllegalArgumentException("급여 변경 시 변경 급여 반영일은 필수 입력값입니다");
-            }
-        }
         emp.update(requestDTO, deptId);
 
         return new ResultDTO("success", "사원 수정 성공");

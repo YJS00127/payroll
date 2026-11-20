@@ -72,7 +72,8 @@
 }
 
 /* 검색 영역 */
-#searchBox, #salaryEditSearchBox, #salaryHistorySearchBox  {
+#searchBox, #salaryEditSearchBox, #salaryHistorySearchBox,
+#leaveUsageSearchBox, #leaveRecordSearchBox{
     display: flex;
     gap: 10px;
     align-items: center;
@@ -80,12 +81,11 @@
 }
 
 /* 검색 입력창, 선택창 */
-#searchBox input,
-#searchBox select,
-#salaryEditSearchBox input,
-#salaryEditSearchBox select,
-#salaryHistorySearchBox input,
-#salaryHistorySearchBox select {
+#searchBox input, #searchBox select,
+#salaryEditSearchBox input, #salaryEditSearchBox select,
+#salaryHistorySearchBox input, #salaryHistorySearchBox select,
+#leaveUsageSearchBox input, #leaveUsageSearchBox select,
+#leaveRecordSearchBox input, #leaveRecordSearchBox select{
     padding: 9px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
@@ -93,8 +93,9 @@
 }
 
 /* 공통 버튼 */
-#searchBox button, #salaryEditSearchBox button,
-#salaryHistorySearchBox button, .list-header button {
+#searchBox button, .list-header button,
+#salaryEditSearchBox button, #salaryHistorySearchBox button,
+#leaveRecordSearchBox button, #leaveUsageSearchBox button {
     padding: 9px 16px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
@@ -107,6 +108,8 @@
 #searchBox button:hover,
 #salaryEditSearchBox button:hover,
 #salaryHistorySearchBox button:hover,
+#leaveUsageSearchBox button:hover,
+#leaveRecordSearchBox button:hover,
 .list-header button:hover {
     background: #f1f5f9;
 }
@@ -128,14 +131,14 @@
 }
 
 /* 등록 버튼 */
-#addBtn {
+#addBtn, #addUsageBtn, #addRecordBtn {
     background: #2563eb;
     color: white;
     border-color: #2563eb;
 }
 
 /* 일괄 삭제 버튼 */
-#deleteSelectedBtn {
+#deleteSelectedBtn, #deleteSelectedRecordBtn, #deleteSelectedUsageBtn {
     color: #dc2626;
     border-color: #fecaca;
 }

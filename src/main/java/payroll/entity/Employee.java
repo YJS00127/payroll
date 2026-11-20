@@ -98,7 +98,6 @@ public class Employee {
         this.gender = request.getGender();
         this.rank = request.getRank();
         this.joiningDate = request.getJoiningDate();
-        this.hourlyWage = request.getHourlyWage();
         this.retirementDate = request.getRetirementDate();
         this.contractDailyWorkMinutes = (int)(request.getContractDailyWorkHour() * 60);
         this.initialMonthlyIncome = request.getInitialMonthlyIncome();

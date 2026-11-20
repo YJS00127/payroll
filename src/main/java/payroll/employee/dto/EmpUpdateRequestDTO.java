@@ -1,6 +1,5 @@
 package payroll.employee.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -11,30 +10,24 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class EmpUpdateRequestDTO {
-    @NotBlank(message = "부서명은 필수 입력값입니다.")
+    @NotBlank(message = "부서명을 입력해주세요")
     private String deptName;
-    @NotBlank(message = "이름은 필수 입력값입니다.")
+    @NotBlank(message = "사원명을 입력해주세요")
     private String name;
-    @NotBlank(message = "사원 코드는 필수 입력값입니다.")
+    @NotBlank(message = "사원 코드를 입력해주세요")
     private String code;
-    @NotNull(message = "생일은 필수 입력값입니다.")
+    @NotNull(message = "생년월일을 입력해주세요")
     private LocalDate birth;
-    @NotBlank(message = "직급은 필수 입력값입니다.")
+    @NotBlank(message = "직급을 입력해주세요")
     private String rank;
-    @NotNull(message = "입사일은 필수 입력값입니다.")
+    @NotNull(message = "입사일을 입력해주세요")
     private LocalDate joiningDate;
-    @NotNull(message = "성별은 필수 입력값입니다.")
+    @NotNull(message = "성별을 입력해주세요")
     private String gender;
-    private String deleteYn;
     private LocalDate createdAt;
-    @NotNull(message = "시급은 필수 입력값입니다.")
-    @Min(value = 0, message = "시급은 음수가될 수 없습니다.")
-    private int hourlyWage;
-    private String reason;
-    private LocalDate effectiveDate;
     private LocalDate retirementDate;
-    @NotNull(message = "계약 일일근로 시간은 필수 입력값입니다.")
+    @NotNull(message = "1일근로 시간을 입력해주세요")
     private float contractDailyWorkHour;
-    @NotNull(message = "최초 월평균 급여는 필수 입력값입니다.")
+    @NotNull(message = "최초 월평균 급여를 입력해주세요")
     private int initialMonthlyIncome;
 }

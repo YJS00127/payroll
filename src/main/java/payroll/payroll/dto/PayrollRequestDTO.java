@@ -10,15 +10,15 @@ import java.time.LocalDate;
 
 @Getter
 public class PayrollRequestDTO {
-    @NotBlank(message = "사원코드는 필수 입력값입니다.")
+    @NotBlank(message = "사원코드를 입력해주세요")
     private String empCode;
-    @NotNull(message = "급여 산정 연도는 필수 입력값입니다.")
-    @Max(value = 3000, message = "다시 입력해주세요.")
-    @Min(value = 1000, message = "다시 입력해주세요.")
+    @NotNull(message = "급여 산정 연도를 입력해주세요")
+    @Max(value = 2100, message = "기준연도를 다시 입력해주세요.")
+    @Min(value = 1900, message = "기준연도를 다시 입력해주세요.")
     private int year;
-    @NotNull(message = "급여 산정 월은 필수 입력값입니다.")
-    @Max(value = 12, message = "다시 입력해주세요.")
-    @Min(value = 1, message = "다시 입력해주세요.")
+    @NotNull(message = "급여 산정 월을 입력해주세요.")
+    @Max(value = 12, message = "기준월을 다시 입력해주세요.")
+    @Min(value = 1, message = "기준월을 다시 입력해주세요.")
     private int month;
     private int retroactivePay;
     @Min(value = 0, message = "미지급수당은 음수가 될 수 없습니다.")

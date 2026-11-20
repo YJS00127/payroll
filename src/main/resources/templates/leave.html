@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>급여 명세서</title>
+    <link href="/css/modal.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/tab.css" rel="stylesheet">
 </head>
 <body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>휴가 관리</h1>
 <div class="app">
     <div class="tabs">
         <button class="tab-button active" data-tab="leave-usage">휴가 이력</button>
         <button class="tab-button" data-tab="leave-record">휴가 현황</button>
     </div>
     <div id="leave-usage" class="tab-content active">
-        <div id="searchUsageBox"></div>
+        <div id="leaveUsageSearchBox"></div>
         <div class="list-header">
             <div class="button-delete-add">
-                <button id="deleteSelectedUsageBtn" onclick="deleteSelectedLeaveUsage()">일괄 삭제</button>
+                <button id="deleteSelectedUsageBtn" onclick="delSelectedLeaveUsage()">일괄 삭제</button>
                 <button id="addUsageBtn" onclick="addLeaveUsage()">등록</button>
             </div>
         </div>
         <table class="list-table">
             <thead>
             <tr>
-                <th><input type="checkbox" id="selectUsageAll"></th>
+                <th><input type="checkbox" class="selectAll"></th>
                 <th>사원명</th>
                 <th>사원코드</th>
                 <th>휴가 날짜</th>
@@ -33,26 +39,28 @@
         </table>
     </div>
     <div id="leave-record" class="tab-content">
-        <div id="searchRecordBox"></div>
+        <div id="leaveRecordSearchBox"></div>
         <div class="list-header">
             <div class="button-delete-add">
-                <button id="deleteSelectedRecordBtn" onclick="deleteSelectedLeaveRecord()">일괄 삭제</button>
+                <button id="deleteSelectedRecordBtn" onclick="delSelectedLeaveRecord()">일괄 삭제</button>
                 <button id="addRecordBtn" onclick="addLeaveRecord()">등록</button>
             </div>
         </div>
         <table class="list-table">
             <thead>
             <tr>
-                <th><input type="checkbox" id="selectRecordAll"></th>
+                <th><input type="checkbox" class="selectAll"></th>
                 <th>사원명</th>
                 <th>사원코드</th>
-                <th>연도</th>
+                <th>기준 연월</th>
+                <th>총 휴가</th>
                 <th>발생 휴가</th>
                 <th>사용 휴가</th>
                 <th>잔여 휴가</th>
                 <th>수정/삭제</th>
             </tr>
             </thead>
+            <tbody class="leave-record-list"></tbody>
         </table>
     </div>
 </div>

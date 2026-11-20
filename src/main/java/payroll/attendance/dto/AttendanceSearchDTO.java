@@ -15,7 +15,4 @@ public class AttendanceSearchDTO {
     @Max(value=12, message="다시 입력해주세요")
     @Min(value=1, message="다시 입력해주세요")
     private Integer month;
-    @Max(value=31, message="다시 입력해주세요")
-    @Min(value=1, message="다시 입력해주세요")
-    private Integer day;
 }

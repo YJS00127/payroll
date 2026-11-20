@@ -38,8 +38,8 @@ async function loadAttendanceData(page = 0, params = searchParams) {
         {name: "empName", label: "사원명"},
         {name: "empCode", label: "사원코드"},
         {name: "workDate", label: "근로 날짜"},
-        {name: "workTime", label: "근로 시간", type: "number"},
-        {name: "totalWorkHour", label: "총 근로 시간", type: "number"},
+        {name: "workTime", label: "근로 시간"},
+        {name: "totalWorkHour", label: "총 근로 시간"},
         {name: "status", label: "근로 상태"},
         {
             type: "button",
@@ -187,8 +187,8 @@ async function delSelectedAttendance(){
     if(ids.length !== 0) {
         if (!confirm("선택된 근태를 삭제하시겠습니까?")) return;
     } else{
-        alert("삭제할 근태를 선택해주세요");
-        return;
+        alert("삭제할 근태를 선택하세요");
+        return
     }
 
     const response = await fetch(`/api/attendances`, {

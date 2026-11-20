@@ -5,6 +5,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ViewController {
+    @GetMapping
+    public String toEmp() {
+        return "emp";
+    }
+
     @GetMapping("/emp")
     public String emp() {
         return "emp";
@@ -33,5 +38,10 @@ public class ViewController {
     @GetMapping("/salary")
     public String salary() {
         return "salary";
+    }
+
+    @GetMapping("/leave")
+    public String leave(){
+        return "leave";
     }
 }

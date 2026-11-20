@@ -11,31 +11,31 @@ import java.time.LocalDate;
 
 @Getter
 public class EmpRequestDTO {
-    @NotBlank(message = "부서명은 필수 입력값입니다.")
+    @NotBlank(message = "부서명을 입력해주세요")
     private String deptName;
-    @NotBlank(message = "이름은 필수 입력값입니다.")
+    @NotBlank(message = "사원명을 입력해주세요")
     private String name;
-    @NotBlank(message = "사원코드는 필수 입력값입니다.")
+    @NotBlank(message = "사원코드를 입력해주세요")
     private String code;
-    @NotNull(message = "생년월일은 필수 입력값입니다.")
+    @NotNull(message = "생년월일을 입력해주세요")
     private LocalDate birth;
-    @NotBlank(message = "직급은 필수 입력값입니다.")
+    @NotBlank(message = "직급을 입력해주세요")
     private String rank;
-    @NotNull(message = "입사일은 필수 입력값입니다.")
+    @NotNull(message = "입사일을 입력해주세요")
     private LocalDate joiningDate;
-    @NotNull(message = "성별은 필수 입력값입니다.")
+    @NotNull(message = "성별을 입력해주세요")
     private String gender;
     private String deleteYn;
     private LocalDate createdAt;
-    @NotNull(message = "시급은 필수 입력값입니다.")
-//    @Max(value=80000, message="시급")
+    @NotNull(message = "시급을 입력해주세요")
+    @Max(value=80000, message="시급을 다시 입력해주세요")
     @Min(value=0, message = "시급은 음수일 수 없습니다.")
     private int hourlyWage;
     private LocalDate retirementDate;
-    @NotNull
-    @Min(value = 1, message = "다시 입력해주세요.")
+    @NotNull(message="1일 근로시간을 입력해주세요")
+    @Min(value = 1, message = "1일 근로시간을 다시 입력해주세요")
     private int contractDailyWorkMinutes;
-    @NotNull
+    @NotNull(message="계약 평균 급여를 입력해주세요")
     private int initialMonthlyIncome;
 
     public Employee toEntity(Long deptId){
