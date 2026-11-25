@@ -19,24 +19,19 @@ public class LeaveRequestDTO {
     @Max(value = 12, message = "기준 월을 다시 입력해주세요")
     @Min(value = 1, message = "기준 월을 다시 입력해주세요")
     private int month;
-    private int totalLeave;
-    private int usedLeave;
-    private int remainingLeave;
     private String deleteYn;
     @NotNull(message = "발생 월차를 입력해주세요")
     @Max(value = 70, message = "발생 월차를 다시 입력해주세요")
     @Min(value = 0, message = "발생 월차는 음수가 될 수 없습니다")
     private int accruedLeave;
 
-    public LeaveRecord toEntity(Long empId){
+    public LeaveRecord toEntity(Long empId, double previousTotalLeave){
         return LeaveRecord.builder()
                 .empId(empId)
                 .year(this.year)
                 .month(this.month)
-                .totalLeave(this.totalLeave)
-                .usedLeave(this.usedLeave)
-                .remainingLeave(this.remainingLeave)
                 .accruedLeave(this.accruedLeave)
+                .totalLeave(previousTotalLeave + this.accruedLeave)
                 .build();
     }
 }

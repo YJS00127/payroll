@@ -5,7 +5,7 @@ async function loadLeaveUsageData(page=0, params = searchUsageParams){
     searchUsageParams = new URLSearchParams(params);
     searchUsageParams.set("page", page);
 
-    const response = await fetch(`/api/leave-usage?${searchUsageParams}`)
+    const response = await fetch(`/api/leave-usage?${searchUsageParams.toString()}`)
     const data = await response.json();
 
     const leaveUsageData = data.content.map(leaveUsage => ({
@@ -18,17 +18,18 @@ async function loadLeaveUsageData(page=0, params = searchUsageParams){
         {name: "empName", label: "사원명"},
         {name: "empCode", label: "사원코드"},
         {name: "leaveDate", label: "휴가 날짜"},
-        {name: "usedDays", label: "휴가일수"},
+        {name: "usedDays", label: "사용 휴가일수"},
+        {name: "leaveType", label: "휴가 종류"},
         {
             type: "button",
             buttons:[
                 {label: "수정", onClick: leaveUsage => editLeaveUsage(leaveUsage)},
-                {label: "삭제", onclick: leaveUsage => delLeaveUsage(leaveUsage.id)}
+                {label: "삭제", onClick: leaveUsage => delLeaveUsage(leaveUsage.id)}
             ]
         }]
     );
 
-    createPagination(leaveUsageData, nextPage => loadLeaveUsageData(nextPage));
+    createPagination(data, nextPage => loadLeaveUsageData(nextPage));
 }
 
 async function addLeaveUsage(){
@@ -81,7 +82,6 @@ async function saveLeaveUsage(data){
         body: JSON.stringify(data)
     })
     const result = await response.json();
-
     if(!response.ok || result.result === "fail"){
         throw new Error(result.message || "휴가 등록 실패");
     }
@@ -95,12 +95,22 @@ async function editLeaveUsage(leaveUsage){
     openModal({
         title: "휴가 이력 수정",
         fields: [
-            {name: "empInfo", label: "사원 정보", disable: true},
+            {name: "empInfo", label: "사원 정보", disabled: true},
+            {
+                name: "leaveType",
+                label: "휴가 종류",
+                type: "select",
+                options: [
+                    {label: "휴가", value: "휴가"},
+                    {label: "반차", value: "반차"},
+                    {label: "반반차", value: "반반차"}
+                ]
+            },
             {name: "startDate", label: "휴가 시작일", type: "date"},
             {name: "endDate", label: "휴가 종료일", type: "date"}
         ], values: {
             ...leaveUsageData,
-            empInfo: `${empName} (${empCode})`
+            empInfo: `${leaveUsageData.empName} (${leaveUsageData.empCode})`
         },
         onSubmit: async data => {
             await updateLeaveUsage(leaveUsageData.id, data)
@@ -169,6 +179,8 @@ async function loadLeaveRecordData(page=0, params= searchRecordParams){
     searchRecordParams = new URLSearchParams(params);
     searchRecordParams.set("page", page);
 
+    console.log(searchUsageParams)
+
     const response = await fetch(`/api/leave-record?${searchRecordParams.toString()}`)
     const pageData = await response.json();
 
@@ -203,9 +215,9 @@ async function addLeaveRecord(){
         title: "휴가 정보 등록",
         fields: [
             {name: "empCode", label: "사원코드"},
+            {name: "accruedLeave", label: "발생 휴가", type: "number"},
             {name: "year", label: "연도", type: "number"},
-            {name: "month", label: "월", type: "number"},
-            {name: "accruedLeave", label: "발생 휴가", type: "number"}
+            {name: "month", label: "월", type: "number"}
         ],
         onSubmit: async data => {
             await saveLeaveRecord(data)
@@ -220,7 +232,7 @@ async function saveLeaveRecord(data){
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
     });
-    const result = response.json();
+    const result = await response.json();
 
     if(!response.ok || result.result === "fail"){
         throw new Error(result.message || "휴가 정보 등록 실패");
@@ -318,7 +330,7 @@ function setCheckbox(tabId, checkboxClass){
 
     selectAll.addEventListener("change", () => {
         tab.querySelectorAll(`.${checkboxClass}`).forEach(checkbox => {
-            checkbox.checked = this.checked;
+            checkbox.checked = selectAll.checked;
         })
     })
 
@@ -341,13 +353,13 @@ document.addEventListener("DOMContentLoaded", () => {
     createSearchBox([
         {name: "keyword", placeholder: "사원명 또는 사원코드로 검색"},
         {name: "leaveDate", type: "date", placeholder: "휴가일"}
-    ], params => loadLeaveUsageData(params), "leaveUsageSearchBox")
+    ], params => loadLeaveUsageData(0, params), "leaveUsageSearchBox")
 
     createSearchBox([
         {name: "keyword", placeholder: "사원명 또는 사원코드로 검색"},
         {name: "year", placeholder: "연도"},
         {name: "month", placeholder: "월"}
-    ], params => loadLeaveRecordData(params), "leaveRecordSearchBox")
+    ], params => loadLeaveRecordData(0, params), "leaveRecordSearchBox")
 
     document.querySelectorAll(".tab-button").forEach(button => {
         button.addEventListener("click", () => {

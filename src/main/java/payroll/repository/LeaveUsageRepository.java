@@ -20,18 +20,18 @@ public interface LeaveUsageRepository extends JpaRepository<LeaveUsage, Long>, J
             l.start_date <= :endDate AND
             l.end_date >= :startDate)
     """, nativeQuery = true)
-    boolean existsLeaveUsage(@Param("id") Long id, @Param("empId") Long empId,
+    Integer existsLeaveUsage(@Param("id") Long id, @Param("empId") Long empId,
                                   @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     Optional<LeaveUsage> findByIdAndDeleteYn(@Param("id") Long id, @Param("deleteYn") String deleteYn);
 
     @Query(value = """
-    SELECT l FROM leave_usage l
+    SELECT * FROM leave_usage l
     WHERE l.emp_id = :empId AND
         l.start_date <= :end AND
-        l.end_date >= :startDate AND
+        l.end_date >= :start AND
         l.delete_yn = 'N'
     """, nativeQuery = true)
-    List<LeaveUsage> findByEmpIdAndPeriod(@Param("empId")Long empId, @Param("start") LocalDate start,
+    List<LeaveUsage> findLeave(@Param("empId")Long empId, @Param("start") LocalDate start,
                                           @Param("end") LocalDate end);
 }

@@ -12,11 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import payroll.common.dto.ResultDTO;
+import payroll.common.excel.ExcelService;
 import payroll.employee.dto.*;
 import payroll.entity.*;
 import payroll.repository.*;
 import payroll.salaryHistory.SalaryHistoryService;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +30,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final LeaveRecordRepository leaveRecordRepository;
+    private final ExcelService excelService;
 
     @Override
     public Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable){
@@ -51,6 +54,15 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+    public byte[] downloadEmpExcel() throws IOException{
+        List<String> headers = List.of(
+                "이름", "사원코드", "부서명", "직급", "입사일", "생년월일",
+                "성별", "시급", "월평균 급여", "소정근로시간");
+
+        return excelService.downloadExcel("사원등록", headers);
+    }
+
+    @Override
     @Transactional
     public ResultDTO createEmp(EmpRequestDTO requestDTO) {
         Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
@@ -61,15 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService{
             throw new EntityExistsException("해당 코드의 사원이 이미 존재합니다");
         }
 
-        Employee saved = employeeRepository.save(emp);
-
-        LeaveRecord leaveRecord = LeaveRecord.builder()
-                .empId(saved.getId())
-                .year(LocalDate.now().getYear())
-                .month(LocalDate.now().getMonthValue())
-                .build();
-
-        leaveRecordRepository.save(leaveRecord);
+        employeeRepository.save(emp);
 
         return new ResultDTO("success", "사원 저장 성공");
     }

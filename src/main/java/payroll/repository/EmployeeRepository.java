@@ -27,7 +27,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     boolean existsByDeptIdInAndDeleteYn(@Param("deptId")List<Long> deptIds, @Param("deleteYn")String deleteYn);
 
     @Query("SELECT e.id FROM Employee e WHERE e.name = :keyword OR e.code = :keyword")
-    Long findIdByNameOrCode(@Param("keyword") String keyword);
+    Optional<Long> findIdByNameOrCode(@Param("keyword") String keyword);
 
     int findContractDailyWorkHourById(@Param("id")Long id);
 }

@@ -18,5 +18,4 @@ public interface SalaryHistoryService {
 
     ResultDTO updateSalaryHistory(Long id, SalaryHistoryRequestDTO requestDTO);
 
-//    ResultDTO deleteSalaryHistory(Long id);
 }

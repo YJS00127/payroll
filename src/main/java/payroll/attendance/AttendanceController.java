@@ -17,45 +17,40 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/attendance")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
 
-    @GetMapping("/attendance")
+    @GetMapping
     public ResponseEntity<Page<AttendanceResponseDTO>> getAttendance(@ModelAttribute @Valid AttendanceSearchDTO searchDTO,
                                                                      @PageableDefault(size=10, sort = {"workDate", "id"})Pageable pageable){
         return ResponseEntity.ok(attendanceService.getAttendance(searchDTO, pageable));
     }
 
-    @GetMapping("/attendance/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<AttendanceResponseDTO> getAttendanceById(@PathVariable Long id){
         return ResponseEntity.ok(attendanceService.getAttendanceById(id));
     }
 
-    @PostMapping("/attendance")
+    @PostMapping
     public ResponseEntity<ResultDTO> createAttendance(@RequestBody @Valid AttendanceRequestDTO requestDTO){
         return ResponseEntity.ok(attendanceService.saveAttendance(requestDTO));
     }
 
-//    @PostMapping("/attendances")
-//    public ResponseEntity<ResultDTO> createAttendances(@RequestBody @Valid List<AttendanceRequestDTO> requestDTO){
-//        return ResponseEntity.ok(attendanceService.saveAttendanceAll(requestDTO));
-//    }
-
-    @PutMapping("/attendance/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ResultDTO> updateAttendance(@PathVariable Long id,
                                                       @RequestBody @Valid AttendanceRequestDTO requestDTO){
         return ResponseEntity.ok(attendanceService.updateAttendance(id, requestDTO));
     }
 
-    @DeleteMapping("/attendance/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ResultDTO> deleteAttendance(@PathVariable Long id){
         return ResponseEntity.ok(attendanceService.deleteAttendance(id));
     }
 
-    @DeleteMapping("/attendances/{id}")
-    public ResponseEntity<ResultDTO> deleteAttendanceAll(@RequestBody List<Long> ids){
+    @DeleteMapping()
+    public ResponseEntity<ResultDTO> deleteSelectedAttendance(@RequestBody List<Long> ids){
         return ResponseEntity.ok(attendanceService.deleteAttendanceAll(ids));
     }
 

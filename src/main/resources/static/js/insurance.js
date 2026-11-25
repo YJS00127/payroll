@@ -245,7 +245,7 @@ async function delSelectedInsurance(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("selectAll").addEventListener("change", () => {
+    document.getElementById("selectAll").addEventListener("change", function () {
         const checkboxes = document.querySelectorAll(".insurance-checkbox")
 
         checkboxes.forEach(checkbox => {

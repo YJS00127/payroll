@@ -8,6 +8,12 @@ function openModal({title, fields, values = {}, onSubmit}) {
     modalSubmitHandler = onSubmit;
 
     fields.forEach(field => {
+        if(field.newRow){
+            const lineBreak = document.createElement("div");
+            lineBreak.className = "modal-line-break";
+            container.appendChild(lineBreak);
+        }
+
         const div = document.createElement("div");
         div.className = "modal-field";
 
@@ -16,7 +22,7 @@ function openModal({title, fields, values = {}, onSubmit}) {
 
         let input;
 
-        if(field.type === "select") {
+        if(field.type === "select"){
             input = document.createElement("select");
 
             input.add(new Option("선택하세요", ""));
@@ -24,9 +30,9 @@ function openModal({title, fields, values = {}, onSubmit}) {
             (field.options ?? []).forEach(options => {
                 input.add(new Option(options.label, options.value));
             });
-        } else if(field.type === "textarea") {
+        } else if(field.type === "textarea"){
             input = document.createElement("textarea");
-        } else {
+        } else{
             input = document.createElement("input");
             input.type = field.type ?? "text";
         }

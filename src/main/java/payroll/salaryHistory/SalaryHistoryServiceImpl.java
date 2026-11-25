@@ -60,6 +60,14 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
     @Override
     @Transactional
     public ResultDTO saveSalaryHistory(SalaryHistoryRequestDTO requestDTO) {
+        if(requestDTO.getPreviousHourlyWage() == requestDTO.getNewHourlyWage()){
+            throw new IllegalArgumentException("변경될 급여를 다시 입력해주세요");
+        }
+        System.out.println(requestDTO.getReason());
+        if(requestDTO.getReason() == null || requestDTO.getReason().isEmpty()){
+            throw new IllegalArgumentException("급여 변경 사유를 입력해주세요");
+        }
+
         SalaryHistory salaryHistory = requestDTO.toEntity();
         salaryHistoryRepository.save(salaryHistory);
 
@@ -75,7 +83,7 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
 
         salaryHistory.update(requestDTO);
 
-        return new ResultDTO("success", "급여 변경 기록 수정 성공");
+        return new ResultDTO("success", "급여 변경 성공");
     }
 
 //    @Override
@@ -97,7 +105,8 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
 
             if(StringUtils.hasText(searchDTO.getKeyword())){
                 String keyword = searchDTO.getKeyword().trim();
-                Long empId = employeeRepository.findIdByNameOrCode(keyword);
+                Long empId = employeeRepository.findIdByNameOrCode(keyword)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
                 predicates.add(cb.or(cb.equal(root.get("empId"), empId)));
             }
 

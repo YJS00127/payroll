@@ -1,18 +1,14 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.attendance.dto.AttendanceRequestDTO;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 
 @Getter
 @Entity
@@ -52,13 +48,17 @@ public class AttendanceRecord {
     @Column(name = "holiday_work_minutes")
     private int holidayWorkMinutes;
 
+    @Comment("공제 시간")
+    @Column(name = "deduction_minutes")
+    private int deductionMinutes;
+
     @Comment("근로 상태")
     @Column(name = "status")
     private String status;
 
     @Builder
-    public AttendanceRecord(Long empId, LocalDate workDate, LocalTime checkIn, LocalTime checkOut,
-                            int workMinutes, int overtimeWorkMinutes, int holidayWorkMinutes, String status){
+    public AttendanceRecord(Long empId, LocalDate workDate, LocalTime checkIn, LocalTime checkOut, int workMinutes,
+                            int overtimeWorkMinutes, int holidayWorkMinutes, String status, int deductionMinutes){
         this.empId = empId;
         this.workDate = workDate;
         this.checkIn = checkIn;
@@ -66,11 +66,12 @@ public class AttendanceRecord {
         this.workMinutes = workMinutes;
         this.overtimeWorkMinutes = overtimeWorkMinutes;
         this.holidayWorkMinutes = holidayWorkMinutes;
+        this.deductionMinutes = deductionMinutes;
         this.status = status;
     }
 
-    public void update(AttendanceRequestDTO requestDTO, Long empId,
-                       int workMinutes, int overtimeWorkMinutes, int holidayWorkMinutes) {
+    public void update(AttendanceRequestDTO requestDTO, Long empId, int workMinutes,
+                       int overtimeWorkMinutes, int holidayWorkMinutes, int deductionMinutes) {
         this.empId = empId;
         this.workDate = requestDTO.getWorkDate();
         this.checkIn = requestDTO.getCheckIn();
@@ -79,5 +80,6 @@ public class AttendanceRecord {
         this.workMinutes = workMinutes;
         this.overtimeWorkMinutes = overtimeWorkMinutes;
         this.holidayWorkMinutes = holidayWorkMinutes;
+        this.deductionMinutes = deductionMinutes;
     }
 }

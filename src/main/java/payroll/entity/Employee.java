@@ -51,7 +51,7 @@ public class Employee {
     private LocalDate joiningDate;
 
     @Comment("재직 여부")
-    @Column(name = "delete_yn", nullable = false, insertable = false)
+    @Column(name = "delete_yn", insertable = false)
     private String deleteYn;
 
     @Comment("등록일")
@@ -66,11 +66,11 @@ public class Employee {
     @Column(name = "retirement_date")
     private LocalDate retirementDate;
 
-    @Comment("계약 일일 근로시간")
+    @Comment("소정근로시간")
     @Column(name = "contract_daily_work_minutes")
     private int contractDailyWorkMinutes;
 
-    @Comment("최초 월평균 급여")
+    @Comment("월평균 급여")
     @Column(name = "initial_monthly_income")
     private int initialMonthlyIncome;
 

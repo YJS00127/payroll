@@ -28,6 +28,16 @@
     box-sizing: border-box;
 }
 
+.modal-fields {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.modal-line-break {
+    flex-basis: 100%;
+    height: 0;
+}
+
 /* 모달 제목 */
 #modalTitle {
     margin: 0 0 25px;

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/modal.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragment/sidebar::sidebar}"></div>
+<div th:replace="~{fragment/modal::modal}"></div>
+<h1>급여 관리</h1>
+<div class="app">
+    <div id="searchBox"></div>
+    <div class="list-container">
+        <div class="list-header">
+            <div class="button-delete-add">
+                <button id="deleteSelectedBtn" onclick="delSelectedPayroll()">일괄 삭제</button>
+                <button id="addBtn" onclick="addPayroll()">등록</button>
+            </div>
+        </div>
+    </div>
+    <table class="list-table">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>사원명</th>
+            <th>사원코드</th>
+            <th>귀속 연월</th>
+            <th>총 지급액</th>
+            <th>총 공제액</th>
+            <th>실수령액</th>
+            <th>급여 지급일</th>
+            <th>관리</th>
+        </tr>
+        </thead>
+        <tbody class="payroll-list"></tbody>
+    </table>
+</div>
+<div class="pagination"></div>
+<script src="/js/common/table.js"></script>
+<script src="/js/common/modal.js"></script>
+<script src="/js/common/search.js"></script>
+<script src="/js/common/pagination.js"></script>
+<script src="/js/payroll.js"></script>
+</body>
+</html>

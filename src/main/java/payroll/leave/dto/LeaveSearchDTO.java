@@ -6,8 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LeaveSearchDTO {
-    private String empCode;
+    private String keyword;
     private Integer year;
     private Integer month;
-    private Integer remainingLeave;
 }

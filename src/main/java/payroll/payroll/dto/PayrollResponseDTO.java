@@ -1,14 +1,16 @@
 package payroll.payroll.dto;
 
+import lombok.Getter;
+import payroll.entity.Employee;
 import payroll.entity.PayrollHistory;
 
 import java.time.LocalDate;
 
+@Getter
 public class PayrollResponseDTO {
     private Long id;
     private String empCode;
     private String empName;
-    private String deptName;
     private int year;
     private int month;
     private int hourlyWage;
@@ -17,7 +19,7 @@ public class PayrollResponseDTO {
     private int retroactivePay;
     private int deductionAmount;
     private int monthlyLeavePay;
-    private int mealAllowance;
+    private int dailyMealAllowance;
     private int overtimePay;
     private int unpaidAllowance;
     private String unpaidAllowanceReason;
@@ -34,16 +36,14 @@ public class PayrollResponseDTO {
     private int incomeTax;
     private int localIncomeTax;
     private int grossSalary;
-    private int totalDeductions;
+    private int totalDeduction;
     private int netSalary;
     private LocalDate paymentDate;
 
-    public PayrollResponseDTO(PayrollHistory payrollHistory,
-                              String empCode, String empName, String deptName){
+    public PayrollResponseDTO(PayrollHistory payrollHistory, Employee emp){
         this.id = payrollHistory.getId();
-        this.empCode = empCode;
-        this.empName = empName;
-        this.deptName = deptName;
+        this.empCode = emp.getCode();
+        this.empName = emp.getName();
         this.year = payrollHistory.getYear();
         this.month = payrollHistory.getMonth();
         this.hourlyWage = payrollHistory.getHourlyWage();
@@ -51,10 +51,11 @@ public class PayrollResponseDTO {
         this.weeklyHolidayPay = payrollHistory.getWeeklyHolidayPay();
         this.retroactivePay = payrollHistory.getRetroactivePay();
         this.deductionAmount = payrollHistory.getDeductionAmount();
-        this.monthlyLeavePay = payrollHistory.getMonthlyHolidayPay();
-        this.mealAllowance = payrollHistory.getMealAllowance();
+        this.monthlyLeavePay = payrollHistory.getMonthlyLeavePay();
+        this.dailyMealAllowance = payrollHistory.getDailyMealAllowance();
         this.overtimePay = payrollHistory.getOvertimePay();
         this.unpaidAllowance = payrollHistory.getUnpaidAllowance();
+        this.unpaidAllowanceReason = payrollHistory.getUnpaidAllowanceReason();
         this.otherAllowance = payrollHistory.getOtherAllowance();
         this.holidayWorkPay = payrollHistory.getHolidayWorkPay();
         this.nationalPension = payrollHistory.getNationalPension();
@@ -68,7 +69,7 @@ public class PayrollResponseDTO {
         this.incomeTax = payrollHistory.getIncomeTax();
         this.localIncomeTax = payrollHistory.getLocalIncomeTax();
         this.grossSalary = payrollHistory.getGrossSalary();
-        this.totalDeductions = payrollHistory.getTotalDeductions();
+        this.totalDeduction = payrollHistory.getTotalDeduction();
         this.netSalary = payrollHistory.getNetSalary();
         this.paymentDate = payrollHistory.getPaymentDate();
     }

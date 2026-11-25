@@ -31,11 +31,11 @@ public class Department {
 
     @Comment("부서 존재 여부")
     @ColumnDefault("'N'")
-    @Column(name="delete_yn", nullable = false, insertable = false)
+    @Column(name="delete_yn", insertable = false)
     private String deleteYn;
 
     @Comment("부서 등록일")
-    @Column(name = "created_at", insertable = false, updatable = false, nullable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDate createdAt;
 
     @Comment("부서 생성일")

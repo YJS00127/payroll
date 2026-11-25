@@ -29,18 +29,18 @@ public class LeaveRecord {
 
     @Comment("총 월차")
     @Column(name = "total_leave")
-    private int totalLeave;
+    private double totalLeave;
 
     @Comment("사용 월차")
     @Column(name = "used_leave")
-    private int usedLeave;
+    private double usedLeave;
 
     @Comment("남은 월차")
     @Column(name = "remaining_leave")
-    private int remainingLeave;
+    private double remainingLeave;
 
     @Comment("삭제 여부")
-    @Column(name = "delete_yn", nullable = false, insertable = false)
+    @Column(name = "delete_yn", insertable = false)
     private String deleteYn;
 
     @Comment("발생 월차")
@@ -48,8 +48,8 @@ public class LeaveRecord {
     private int accruedLeave;
 
     @Builder
-    public LeaveRecord(Long empId, int year, int month, int totalLeave,
-                       int usedLeave, int remainingLeave, int accruedLeave){
+    public LeaveRecord(Long empId, int year, int month, double totalLeave,
+                       double usedLeave, double remainingLeave, int accruedLeave){
         this.empId = empId;
         this.year = year;
         this.month = month;
@@ -82,18 +82,18 @@ public class LeaveRecord {
         this.deleteYn = "Y";
     }
 
-    public void useLeave(int usedLeave){
+    public void useLeave(double usedLeave){
         this.usedLeave += usedLeave;
         this.remainingLeave = this.remainingLeave - usedLeave;
     }
 
-    public void updateLeave(int previousUsedDays, int newUsedDays){
+    public void updateLeave(double previousUsedDays, double newUsedDays){
         this.usedLeave = this.usedLeave + previousUsedDays - newUsedDays;
         this.remainingLeave = this.remainingLeave - previousUsedDays + newUsedDays;
     }
 
-    public void cancelLeave(int leaveDays){
+    public void cancelLeave(double leaveDays){
         this.usedLeave -= leaveDays;
-        this.totalLeave += leaveDays;
+        this.remainingLeave += leaveDays;
     }
 }

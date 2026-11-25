@@ -10,9 +10,9 @@ public class LeaveResponseDTO {
     private String empName;
     private int year;
     private int month;
-    private int totalLeave;
-    private int usedLeave;
-    private int remainingLeave;
+    private double totalLeave;
+    private double usedLeave;
+    private double remainingLeave;
     private int accruedLeave;
 
     public LeaveResponseDTO(LeaveRecord leaveRecord,

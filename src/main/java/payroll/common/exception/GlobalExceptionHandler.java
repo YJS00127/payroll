@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerIllegalArgumentException(
             IllegalArgumentException e) {
 
-        log.error("400 Bad Request : 요청 데이터 이상", e);
+        log.error("400 Bad Request : {}", e.getMessage());
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerEntityNotFoundException(
             EntityExistsException e){
 
-        log.error("404 Not Found : Entity Not Found", e);
+        log.error("404 Not Found : {}", e.getMessage());
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerHttpMessageNotReadableException(
             HttpMessageNotReadableException e){
 
-        log.error("400 Bad Request : DTO변환 이상", e);
+        log.error("400 Bad Request : {}", e.getMessage());
         ErrorResponse response = new ErrorResponse("fail", "잘못된 요청입니다.");
         return ResponseEntity.badRequest().body(response);
     }
@@ -85,9 +86,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlerEmployeeInDepartmentException(
             EmployeeInDepartmentException e){
 
-        log.error("409 Conflict : 삭제되지 않은 사원이 포함된 부서 삭제 시도");
+        log.error("409 Conflict : {}", e.getMessage());
         ErrorResponse response = new ErrorResponse("fail", e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ErrorResponse> handlerIOException(IOException e){
+
+        log.error("파일 입출력 오류 : {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse("fail", e.getMessage());
+        return ResponseEntity.internalServerError().
+                body(new ErrorResponse("fail", "파일 처리 중 오류가 발생했습니다"));
     }
 
     private String validationError(BindingResult bindingResult){
@@ -96,4 +106,6 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining("\n"));
     }
+
+
 }

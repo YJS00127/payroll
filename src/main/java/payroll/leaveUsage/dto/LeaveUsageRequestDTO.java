@@ -9,19 +9,22 @@ import java.time.LocalDate;
 
 @Getter
 public class LeaveUsageRequestDTO {
-    @NotBlank(message = "사원코드는 필수값입니다.")
+    @NotBlank(message = "사원코드는 필수값입니다")
     private String empCode;
-    @NotNull(message = "휴가 시작일은 필수입니다.")
+    @NotNull(message = "휴가 시작일은 필수입니다")
     private LocalDate startDate;
-    @NotNull(message = "휴가 마지막일은 필수입니다.")
+    @NotNull(message = "휴가 마지막일은 필수입니다")
     private LocalDate endDate;
+    @NotBlank(message = "휴가 상태는 필수입니다")
+    private String leaveType;
 
-    public LeaveUsage toEntity(Long empId, int usedDays){
+    public LeaveUsage toEntity(Long empId, double usedDays){
         return LeaveUsage.builder()
                 .empId(empId)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
                 .usedDays(usedDays)
+                .leaveType(this.leaveType)
                 .build();
     }
 }

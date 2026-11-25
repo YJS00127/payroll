@@ -1,59 +1,58 @@
-let searchEmpParams = new URLSearchParams()
+let searchHourlyWageParams = new URLSearchParams()
 let searchSalaryParams = new URLSearchParams()
 
-async function loadEmployeeData(page=0, params = searchEmpParams){
-    searchEmpParams = new URLSearchParams(params);
-    searchEmpParams.set("page", page);
+async function loadHourlyWageData(page=0, params = searchHourlyWageParams){
+    searchHourlyWageParams = new URLSearchParams(params);
+    searchHourlyWageParams.set("page", page);
 
-    const response = await fetch(`/api/emp?${searchEmpParams.toString()}`);
-    const empData = await response.json();
+    const response = await fetch(`/api/emp?${searchHourlyWageParams.toString()}`);
+    const hourlyWageData = await response.json();
 
-    renderTable(".salary-edit-list", empData.content, [
+    renderTable(".salary-edit-list", hourlyWageData.content, [
         {name: "name", label: "사원명"},
         {name: "code", label: "사원코드"},
         {name: "joiningDate", label: "입사일"},
         {name: "hourlyWage", label: "시급"},
         {
             type: "button",
-            buttons: [{label: "수정", onClick: emp => editHourlyWage(emp)}]
+            buttons: [{label: "수정", onClick: hourlyWage => editHourlyWage(hourlyWage)}]
         }
     ]);
 
     document.getElementById("totalEmpCount").textContent =
-        `총 ${empData.totalElements}명`
+        `총 ${hourlyWageData.totalElements}명`
 
-    createPagination(empData, nextPage => loadEmployeeData(nextPage));
+    createPagination(hourlyWageData, nextPage => loadHourlyWageData(nextPage));
 }
 
-async function editHourlyWage(emp){
-    const response = await fetch(`/api/emp/${emp.id}`);
-    const empData = await response.json();
+async function editHourlyWage(hourlyWage){
+    const response = await fetch(`/api/emp/${hourlyWage.id}`);
+    const hourlyWageData = await response.json();
 
     openModal({
         title: "급여 변경",
         fields: [
             {name: "name", label: "사원명", disabled: true},
-            {name: "empCode", label: "사원코드", disabled: true},
+            {name: "empInfo", label: "사원정보", disabled: true},
             {name: "previousHourlyWage", label: "변경 전 시급", disabled: true},
             {name: "newHourlyWage", label: "변경 후 시급", type: "number"},
             {name: "effectiveDate", label: "변경일", type: "date"},
             {name: "reason", label: "변경 사유"}
         ], values: {
-            ...empData,
-            previousHourlyWage: empData.hourlyWage,
-            empName: empData.name,
-            empCode: empData.code
+            ...hourlyWageData,
+            previousHourlyWage: hourlyWageData.hourlyWage,
+            empInfo: `${hourlyWageData.name} (${hourlyWageData.code})`
         }, onSubmit: async data => {
-            await addSalary({
+            await addSalaryHistory({
                 ...data,
-                empId: emp.id,
-                previousHourlyWage: empData.hourlyWage
+                empId: hourlyWage.id,
+                previousHourlyWage: hourlyWageData.hourlyWage
             })
         }
     })
 }
 
-async function addSalary(data){
+async function addSalaryHistory(data){
     const response = await fetch(`/api/salary`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -65,7 +64,7 @@ async function addSalary(data){
         throw new Error(result.message || "급여 변경 실패")
     }
     alert(result.message)
-    await loadEmployeeData(searchEmpParams);
+    await loadHourlyWageData(searchHourlyWageParams);
 }
 
 async function loadSalaryData(page=0, params = searchSalaryParams){
@@ -144,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createSearchBox([
         {name: "keyword", placeholder: "사원명 또는 사원코드로 검색"}
-    ], params => loadEmployeeData(0, params), "salaryEditSearchBox");
+    ], params => loadHourlyWageData(0, params), "salaryEditSearchBox");
 
     createSearchBox([
         {name: "keyword", placeholder: "사원명 또는 사원코드로 검색"},
@@ -155,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".tab-button").forEach(button => {
         button.addEventListener("click", () => {
             if (button.dataset.tab === "salary-edit") {
-                loadEmployeeData();
+                loadHourlyWageData();
             } else {
                 loadSalaryData();
             }

@@ -12,34 +12,29 @@ import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/salary")
 @RequiredArgsConstructor
 public class SalaryHistoryController {
     private final SalaryHistoryService salaryHistoryService;
 
-    @GetMapping("/salary")
-    public ResponseEntity<Page<SalaryHistoryResponseDTO>> findSalaryHistory(@ModelAttribute SalaryHistorySearchDTO searchDTO,
+    @GetMapping
+    public ResponseEntity<Page<SalaryHistoryResponseDTO>> getSalaryHistory(@ModelAttribute SalaryHistorySearchDTO searchDTO,
                                                             @PageableDefault(size=10) Pageable pageable){
         return ResponseEntity.ok(salaryHistoryService.findSalaryHistory(searchDTO, pageable));
     }
 
-    @GetMapping("/salary/{id}")
-    public ResponseEntity<SalaryHistoryResponseDTO> findSalaryHistoryById(@PathVariable Long id){
+    @GetMapping("/{id}")
+    public ResponseEntity<SalaryHistoryResponseDTO> getSalaryHistoryById(@PathVariable Long id){
         return ResponseEntity.ok(salaryHistoryService.findSalaryHistoryById(id));
     }
 
-    @PostMapping("/salary")
+    @PostMapping
     public ResponseEntity<ResultDTO> saveSalaryHistory(@RequestBody SalaryHistoryRequestDTO requestDTO){
         return ResponseEntity.ok(salaryHistoryService.saveSalaryHistory(requestDTO));
     }
 
-    @PutMapping("/salary/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ResultDTO> updateSalaryHistory(@PathVariable Long id, @RequestBody SalaryHistoryRequestDTO requestDTO){
         return ResponseEntity.ok(salaryHistoryService.updateSalaryHistory(id, requestDTO));
     }
-
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<ResultDTO> deleteSalaryHistory(Long id){
-//        return ResponseEntity.ok(salaryHistoryService.deleteSalaryHistory(id));
-//    }
 }

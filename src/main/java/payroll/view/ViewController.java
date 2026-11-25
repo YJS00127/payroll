@@ -44,4 +44,14 @@ public class ViewController {
     public String leave(){
         return "leave";
     }
+
+    @GetMapping("/payroll")
+    public String payroll(){
+        return "payroll";
+    }
+
+    @GetMapping("/payslip")
+    public String payslip() {
+        return "payslip";
+    }
 }

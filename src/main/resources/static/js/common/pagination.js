@@ -1,11 +1,16 @@
 function createPagination(pageData, onPageChange) {
     const pagination = document.querySelector(".pagination");
 
+    if(pageData.totalPages === 0){
+        pagination.innerHTML = "";
+        return;
+    }
+
     pagination.innerHTML = "";
 
     const currentPage = pageData.number;
     const totalPages = pageData.totalPages;
-    const pageGroupSize = pageData.pageable.pageSize;
+    const pageGroupSize = 10;
 
     if(totalPages === 1) return;
 

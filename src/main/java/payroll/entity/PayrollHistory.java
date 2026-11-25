@@ -1,8 +1,10 @@
 package payroll.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import payroll.payroll.dto.PayrollHistoryDeductionDTO;
 import payroll.payroll.dto.PayrollHistoryPaymentDTO;
@@ -11,8 +13,10 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "payroll_history")
 @Builder
+@Table(name = "payroll_history")
+@NoArgsConstructor
+@AllArgsConstructor
 public class PayrollHistory {
 
     @Id
@@ -50,12 +54,12 @@ public class PayrollHistory {
     private int deductionAmount;
 
     @Comment("월차수당")
-    @Column(name = "monthly_holiday_pay")
-    private int monthlyHolidayPay;
+    @Column(name = "monthly_leave_pay")
+    private int monthlyLeavePay;
 
     @Comment("식대")
-    @Column(name = "meal_allowance")
-    private int mealAllowance;
+    @Column(name = "daily_meal_allowance")
+    private int dailyMealAllowance;
 
     @Comment("연장근로수당")
     @Column(name = "overtime_pay")
@@ -122,8 +126,8 @@ public class PayrollHistory {
     private int grossSalary;
 
     @Comment("총 공제액")
-    @Column(name = "total_deductions")
-    private int totalDeductions;
+    @Column(name = "total_deduction")
+    private int totalDeduction;
 
     @Comment("실수령액")
     @Column(name = "net_salary")
@@ -133,6 +137,10 @@ public class PayrollHistory {
     @Column(name = "payment_date")
     private LocalDate paymentDate;
 
+    @Comment("삭제여부")
+    @Column(name = "delete_yn", insertable = false)
+    private String deleteYn;
+
     public void update(PayrollHistoryPaymentDTO payment, PayrollHistoryDeductionDTO deduction,
                        int grossSalary, int totalDeduction ,int netSalary){
         // 지급액
@@ -140,8 +148,8 @@ public class PayrollHistory {
         this.weeklyHolidayPay = payment.getWeeklyHolidayPay();
         this.retroactivePay = payment.getRetroactivePay();
         this.deductionAmount = payment.getDeductionAmount();
-        this.monthlyHolidayPay = payment.getRetroactivePay();
-        this.mealAllowance = payment.getMealAllowance();
+        this.monthlyLeavePay = payment.getRetroactivePay();
+        this.dailyMealAllowance = payment.getDailyMealAllowance();
         this.overtimePay = payment.getOverTimePay();
         this.unpaidAllowance = payment.getUnpaidAllowance();
         this.unpaidAllowanceReason = payment.getUnpaidAllowanceReason();
@@ -159,8 +167,16 @@ public class PayrollHistory {
         this.retirementLocalIncomeTax = deduction.getRetirementLocalIncomeTax();
         this.incomeTax = deduction.getIncomeTax();
         this.localIncomeTax = deduction.getLocalIncomeTax();
-        this.totalDeductions = totalDeduction;
+        this.totalDeduction = totalDeduction;
         // 실수령액
         this.netSalary = netSalary;
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
+    }
+
+    public void confirmPayment(LocalDate paymentDate){
+        this.paymentDate = paymentDate;
     }
 }

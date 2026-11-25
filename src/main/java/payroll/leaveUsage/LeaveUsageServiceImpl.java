@@ -49,7 +49,7 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
                     String empCode = emp.getCode();
                     String empName = emp.getName();
 
-                    return new LeaveUsageResponseDTO(leaveUsage, empCode, empName);
+                    return new LeaveUsageResponseDTO(leaveUsage, empCode, empName, leaveUsage.getLeaveType());
                 });
     }
 
@@ -61,7 +61,7 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         Employee emp = employeeRepository.findById(leaveUsage.getEmpId())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
-        return new LeaveUsageResponseDTO(leaveUsage, emp.getCode(), emp.getName());
+        return new LeaveUsageResponseDTO(leaveUsage, emp.getCode(), emp.getName(), leaveUsage.getLeaveType());
     }
 
     @Override
@@ -70,15 +70,28 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
         LocalDate startDate = requestDTO.getStartDate();
-        LocalDate endDate = requestDTO.getEndDate().plusDays(1);
+        LocalDate endDate = requestDTO.getEndDate();
 
-        int usedDays = calculateUsedDays(startDate, endDate);
+        System.out.println(requestDTO.getLeaveType());
 
-        LeaveRecord leaveRecord = leaveRecordRepository.findByEmpIdAndYear(empId, startDate.getYear())
+        double usedDays = 0;
+        if(requestDTO.getLeaveType().equals("반차")){
+            usedDays = 0.5;
+        }
+        if(requestDTO.getLeaveType().equals("반반차")){
+            usedDays = 0.25;
+        }
+        if(requestDTO.getLeaveType().equals("휴가")){
+            usedDays = calculateUsedDays(startDate, endDate);
+        }
+
+        System.out.println(usedDays);
+
+        LeaveRecord leaveRecord = leaveRecordRepository.findByEmpIdAndYearAndMonth(empId, startDate.getYear(), startDate.getMonthValue())
                 .orElseThrow(() -> new EntityNotFoundException("휴가 정보가 존재하지 않습니다"));
 
         Long id = leaveRecord.getId();
-        int remainingLeave = leaveRecord.getRemainingLeave();
+        double remainingLeave = leaveRecord.getRemainingLeave();
 
         if(remainingLeave < usedDays){
             throw new IllegalArgumentException("잔여 휴가보다 사용 휴가가 많습니다");
@@ -89,11 +102,11 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         LeaveUsage leaveUsage = requestDTO.toEntity(empId ,usedDays);
 
         // 근태 기록이 있는지 확인
-        if(attendanceRecordRepository.existsWorkedAttendance(empId, startDate, endDate)){
-            throw new EntityExistsException("이미 근무 기록이 있는 날입니다");
+        if(attendanceRecordRepository.existsWorkedAttendance(empId, startDate, endDate) == 1){
+            throw new EntityExistsException("해당 날에 근무 기록이 존재합니다");
         }
         // 휴가 중복 신청 방지
-        if(leaveUsageRepository.existsLeaveUsage(id, empId, startDate, endDate)){
+        if(leaveUsageRepository.existsLeaveUsage(id, empId, startDate, endDate) == 1){
             throw new EntityExistsException("해당 날에 이미 휴가가 존재합니다");
         }
 
@@ -107,15 +120,15 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
                     AttendanceRecord attRecord = attendanceRecordRepository.findByEmpIdAndWorkDate(empId, date)
                             .orElse(null);
 
-                    if(attRecord == null) {
-                        AttendanceRecord attendanceRecord = AttendanceRecord.builder()
-                                .empId(empId)
-                                .workDate(date)
-                                .checkIn(null)
-                                .checkOut(null)
-                                .status("휴가")
-                                .build();
-                        attendanceRecordRepository.save(attendanceRecord);
+                    if(attRecord == null && requestDTO.getLeaveType().equals("휴가")) {
+                            AttendanceRecord attendanceRecord = AttendanceRecord.builder()
+                                    .empId(empId)
+                                    .workDate(date)
+                                    .checkIn(null)
+                                    .checkOut(null)
+                                    .status("휴가")
+                                    .build();
+                            attendanceRecordRepository.save(attendanceRecord);
                     }
                 });
 
@@ -137,15 +150,15 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         LocalDate newEndDate = requestDTO.getEndDate();
 
         // 이전 휴가 사용일, 신규 휴가 사용일
-        int previousUsedDays = calculateUsedDays(previousStartDate, previousEndDate);
-        int newUsedDays = calculateUsedDays(newStartDate, newEndDate);
+        double previousUsedDays = calculateUsedDays(previousStartDate, previousEndDate);
+        double newUsedDays = calculateUsedDays(newStartDate, newEndDate);
 
         // 수정 중인 휴가 제외 다른 휴가와 중복 등록 확인
-        if(leaveUsageRepository.existsLeaveUsage(id, empId, newStartDate, newEndDate)){
+        if(leaveUsageRepository.existsLeaveUsage(id, empId, newStartDate, newEndDate) == 1){
             throw new EntityExistsException("이미 해당 날짜에 휴가가 등록되어있습니다");
         }
-        // 휴가 기록 조회
-        LeaveRecord leaveRecord = leaveRecordRepository.findByEmpIdAndYear(empId, newStartDate.getYear())
+        // 휴가 일수 현황 조회
+        LeaveRecord leaveRecord = leaveRecordRepository.findByEmpIdAndYearAndMonth(empId, newStartDate.getYear(), newStartDate.getMonthValue())
                 .orElseThrow(() -> new EntityNotFoundException("휴가 기록이 존재하지 않습니다"));
         // 잔여 휴가, 사용 휴가일 비교
         if(newUsedDays > leaveRecord.getRemainingLeave() + previousUsedDays){
@@ -178,7 +191,7 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         deleteLeaveAttendance(empId, deleteDates);
         saveLeaveAttendance(empId, saveDates);
 
-        leaveUsage.update(newStartDate, newEndDate, newUsedDays);
+        leaveUsage.update(newStartDate, newEndDate, newUsedDays, requestDTO.getLeaveType());
 
         return new ResultDTO("success", "휴가 수정 완료");
     }
@@ -201,13 +214,26 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
                 .filter(record -> record.getStatus().equals("휴가"))
                 .forEach(attendanceRecordRepository::delete);
 
-        int leaveDays = leaveUsage.getUsedDays();
+        double leaveDays = leaveUsage.getUsedDays();
 
         LeaveRecord leaveRecord = leaveRecordRepository
-                .findByEmpIdAndYear(empId, startDate.getYear())
+                .findByEmpIdAndYearAndMonth(empId, startDate.getYear(), startDate.getMonthValue())
                 .orElseThrow(() -> new EntityNotFoundException("해당 직원의 휴가 정보가 없습니다"));
 
         leaveRecord.cancelLeave(leaveDays);
+
+        return new ResultDTO("success", "휴가 정보 삭제 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO deleteSelectedLeaveUsage(List<Long> ids){
+        List<LeaveUsage> leaveUsages = leaveUsageRepository.findAllById(ids);
+
+        if(leaveUsages.size() != Set.copyOf(ids).size()){
+            throw new IllegalArgumentException("존재하지 않는 휴가 이력이 포함되어있습니다");
+        }
+        leaveUsages.forEach(LeaveUsage::delete);
 
         return new ResultDTO("success", "휴가 정보 삭제 성공");
     }
@@ -220,7 +246,8 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
             predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
             if(StringUtils.hasText(searchDTO.getKeyword())) {
-                Long empId = employeeRepository.findIdByNameOrCode(searchDTO.getKeyword());
+                Long empId = employeeRepository.findIdByNameOrCode(searchDTO.getKeyword())
+                                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
             if(searchDTO.getYear() != null){
@@ -238,7 +265,7 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
     private Set<LocalDate> getLeaveDates(LocalDate startDate, LocalDate endDate) {
 
         if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
-            throw new IllegalArgumentException("휴가 날짜가 올바르지 않습니다");
+            throw new IllegalArgumentException("휴가 날짜를 다시 입력해주세요");
         }
 
         // 현재 연도별 휴가 관리 구조에서는 연도에 걸친 신청을 제한
@@ -282,8 +309,8 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         });
     }
 
-    private int calculateUsedDays(LocalDate startDate, LocalDate endDate) {
-        return (int)startDate.datesUntil(endDate.plusDays(1))
+    private double calculateUsedDays(LocalDate startDate, LocalDate endDate) {
+        return (double)startDate.datesUntil(endDate.plusDays(1))
                 .filter(date -> date.getDayOfWeek() != DayOfWeek.SATURDAY)
                 .filter(date -> date.getDayOfWeek() != DayOfWeek.SUNDAY)
                 .count();

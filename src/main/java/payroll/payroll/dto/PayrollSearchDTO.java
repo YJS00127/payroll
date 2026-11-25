@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PayrollSearchDTO {
-    private String empCode;
+    private String keyword;
     private Integer year;
     private Integer month;
 }

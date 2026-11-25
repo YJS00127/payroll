@@ -1,15 +1,14 @@
 package payroll.workHistory;
 
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import payroll.common.dto.ResultDTO;
 import payroll.entity.AttendanceRecord;
 import payroll.entity.Employee;
 import payroll.entity.WorkHistory;
@@ -17,10 +16,8 @@ import payroll.holiday.HolidayService;
 import payroll.repository.AttendanceRecordRepository;
 import payroll.repository.EmployeeRepository;
 import payroll.repository.WorkHistoryRepository;
-import payroll.workHistory.dto.WorkRequestDTO;
 import payroll.workHistory.dto.WorkResponseDTO;
 import payroll.workHistory.dto.WorkSearchDTO;
-import payroll.workHistory.dto.WorkUpdateRequestDTO;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,6 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkServiceImpl implements WorkService {
@@ -145,7 +143,8 @@ public class WorkServiceImpl implements WorkService {
                 calculated.getTotalWorkMinutes(),
                 calculated.getOvertimeWorkMinutes(),
                 calculated.getHolidayWorkMinutes(),
-                calculated.getWeeklyHolidayDays()
+                calculated.getWeeklyHolidayDays(),
+                calculated.getDeductionMinutes()
         );
     }
 
@@ -155,7 +154,8 @@ public class WorkServiceImpl implements WorkService {
 
             if (StringUtils.hasText(searchDTO.getKeyword())) {
                 String keyword = searchDTO.getKeyword().trim();
-                Long empId = employeeRepository.findIdByNameOrCode(keyword);
+                Long empId = employeeRepository.findIdByNameOrCode(keyword)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
@@ -205,6 +205,11 @@ public class WorkServiceImpl implements WorkService {
                 .mapToInt(AttendanceRecord::getHolidayWorkMinutes)
                 .sum();
 
+        // 한달 간 총 공제시간
+        int deductionMinutes = monthlyRecords.stream()
+                .mapToInt(AttendanceRecord::getDeductionMinutes)
+                .sum();
+
         int weeklyHolidayDays = calculateWeeklyHolidays(records, start, end);
 
         return WorkHistory.builder()
@@ -216,6 +221,7 @@ public class WorkServiceImpl implements WorkService {
                 .overtimeWorkMinutes(overtimeWorkMinutes)
                 .holidayWorkMinutes(holidayWorkMinutes)
                 .weeklyHolidayDays(weeklyHolidayDays)
+                .deductionMinutes(deductionMinutes)
                 .build();
     }
 
@@ -226,12 +232,19 @@ public class WorkServiceImpl implements WorkService {
                         AttendanceRecord::getWorkDate,
                         record -> record
                 ));
+
+        log.info("집계 시작일: {}, 집계 종료일: {}", start, end);
+
         return (int) start.datesUntil(end.plusDays(1))
                 .filter(date -> date.getDayOfWeek() == DayOfWeek.SUNDAY)
                 .filter(sunday -> !sunday.isAfter(LocalDate.now()))
-                .filter(sunday ->
-                        isExistWeeklyHoliday(attendanceMap, sunday.minusDays(6)))
-                .count();
+                .filter(sunday -> {
+                        boolean result = isExistWeeklyHoliday(attendanceMap, sunday.minusDays(6));
+
+                        log.info("주휴일: {}, 발생여부: {}", sunday, result);
+
+                        return result;
+                }).count();
     }
 
     // 주휴일 유무 확인
@@ -240,9 +253,14 @@ public class WorkServiceImpl implements WorkService {
                 .mapToObj(monday::plusDays)
                 .allMatch(date -> {
                     if (holidayService.isHoliday(date)) {
+                        log.info("날짜: {}, 공휴일", date);
                         return true;
                     }
                     AttendanceRecord record = attendanceMap.get(date);
+
+                    log.info("날짜: {}, 근태상태: {}",
+                            date,
+                            record == null ? "기록 없음" : record.getStatus());
 
                     return record != null && !record.getStatus().equals("결근");
                 });

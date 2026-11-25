@@ -12,6 +12,8 @@ import payroll.leaveUsage.dto.LeaveUsageRequestDTO;
 import payroll.leaveUsage.dto.LeaveUsageResponseDTO;
 import payroll.leaveUsage.dto.LeaveUsageSearchDTO;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/leave-usage")
 @RequiredArgsConstructor
@@ -45,6 +47,8 @@ public class LeaveUsageController {
         return ResponseEntity.ok(leaveUsageService.deleteLeaveUsage(id));
     }
 
-//    @DeleteMapping
-//    public ResponseEntity<ResultDTO> de
+    @DeleteMapping
+    public ResponseEntity<ResultDTO> deleteSelectedLeaveUsage(List<Long> ids){
+        return ResponseEntity.ok(leaveUsageService.deleteSelectedLeaveUsage(ids));
+    }
 }

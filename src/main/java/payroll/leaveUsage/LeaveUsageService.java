@@ -7,6 +7,8 @@ import payroll.leaveUsage.dto.LeaveUsageRequestDTO;
 import payroll.leaveUsage.dto.LeaveUsageResponseDTO;
 import payroll.leaveUsage.dto.LeaveUsageSearchDTO;
 
+import java.util.List;
+
 public interface LeaveUsageService {
     Page<LeaveUsageResponseDTO> findLeaveUsage(LeaveUsageSearchDTO searchDTO, Pageable pageable);
 
@@ -17,4 +19,6 @@ public interface LeaveUsageService {
     ResultDTO updateLeaveUsage(Long id, LeaveUsageRequestDTO requestDTO);
 
     ResultDTO deleteLeaveUsage(Long id);
+
+    ResultDTO deleteSelectedLeaveUsage(List<Long> ids);
 }

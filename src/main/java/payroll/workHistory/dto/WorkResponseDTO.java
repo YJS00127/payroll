@@ -16,6 +16,7 @@ public class WorkResponseDTO {
     private int overtimeWorkMinutes;
     private int holidayWorkMinutes;
     private int weeklyHolidayDays;
+    private int deductionMinutes;
 
     public WorkResponseDTO(WorkHistory workHistory, Employee emp) {
         this.id = workHistory.getId();
@@ -28,6 +29,7 @@ public class WorkResponseDTO {
         this.overtimeWorkMinutes = workHistory.getOvertimeWorkMinutes();
         this.holidayWorkMinutes = workHistory.getHolidayWorkMinutes();
         this.weeklyHolidayDays = workHistory.getWeeklyHolidayDays();
+        this.deductionMinutes = workHistory.getDeductionMinutes();
     }
 
 

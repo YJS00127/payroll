@@ -14,6 +14,7 @@ public class SalaryHistoryResponseDTO {
     private int newHourlyWage;
     private LocalDate effectiveDate;
     private String reason;
+    private LocalDate updateAt;
 
     public SalaryHistoryResponseDTO(SalaryHistory salaryHistory,
                                     String empCode, String empName){
@@ -24,5 +25,6 @@ public class SalaryHistoryResponseDTO {
         this.newHourlyWage = salaryHistory.getNewHourlyWage();
         this.effectiveDate = salaryHistory.getEffectiveDate();
         this.reason = salaryHistory.getReason();
+        this.updateAt = salaryHistory.getUpdateAt();
     }
 }

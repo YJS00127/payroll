@@ -5,12 +5,15 @@ import org.springframework.data.domain.Pageable;
 import payroll.common.dto.ResultDTO;
 import payroll.employee.dto.*;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface EmployeeService {
     Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable);
 
     EmpResponseDTO findEmpById(Long id);
+
+    byte[] downloadEmpExcel() throws IOException;
 
     ResultDTO createEmp(EmpRequestDTO requestDTO);
 

@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import java.time.LocalDate;
-
 @Getter
 public class PayrollRequestDTO {
     @NotBlank(message = "사원코드를 입력해주세요")
@@ -30,12 +28,8 @@ public class PayrollRequestDTO {
     private int otherAllowance;
 
 
-    @Min(value = 0, message = "건강보험정산값은 음수가 될 수 없습니다.")
-    private int healthInsuranceAdjustment;
     @Min(value = 0, message = "퇴직정산소득세는 음수가 될 수 없습니다.")
     private int retirementIncomeTax;
-    @Min(value = 0, message = "퇴직정산주민세는 음수가 될 수 없습니다.")
-    private int retirementLocalIncomeTax;
     @Min(value = 0, message = "소득세는 음수가 될 수 없습니다.")
     private int incomeTax;
 }

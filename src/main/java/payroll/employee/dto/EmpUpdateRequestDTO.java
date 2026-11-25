@@ -26,8 +26,8 @@ public class EmpUpdateRequestDTO {
     private String gender;
     private LocalDate createdAt;
     private LocalDate retirementDate;
-    @NotNull(message = "1일근로 시간을 입력해주세요")
+    @NotNull(message = "소정근로시간을 입력해주세요")
     private float contractDailyWorkHour;
-    @NotNull(message = "최초 월평균 급여를 입력해주세요")
+    @NotNull(message = "월평균 급여를 입력해주세요")
     private int initialMonthlyIncome;
 }

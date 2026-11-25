@@ -32,8 +32,8 @@ public class EmpRequestDTO {
     @Min(value=0, message = "시급은 음수일 수 없습니다.")
     private int hourlyWage;
     private LocalDate retirementDate;
-    @NotNull(message="1일 근로시간을 입력해주세요")
-    @Min(value = 1, message = "1일 근로시간을 다시 입력해주세요")
+    @NotNull(message="소정근로시간을 입력해주세요")
+    @Min(value = 1, message = "소정근로시간을 다시 입력해주세요")
     private int contractDailyWorkMinutes;
     @NotNull(message="계약 평균 급여를 입력해주세요")
     private int initialMonthlyIncome;
@@ -49,7 +49,7 @@ public class EmpRequestDTO {
                 .gender(this.gender)
                 .hourlyWage(this.hourlyWage)
                 .retirementDate(this.retirementDate)
-                .contractDailyWorkMinutes(this.contractDailyWorkMinutes)
+                .contractDailyWorkMinutes(this.contractDailyWorkMinutes * 60)
                 .initialMonthlyIncome(this.initialMonthlyIncome)
                 .build();
     }

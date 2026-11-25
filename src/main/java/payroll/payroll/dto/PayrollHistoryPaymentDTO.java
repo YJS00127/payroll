@@ -11,7 +11,7 @@ public class PayrollHistoryPaymentDTO {
     private int retroactivePay;
     private int deductionAmount;
     private int monthlyLeavePay;
-    private int mealAllowance;
+    private int dailyMealAllowance;
     private int overTimePay;
     private int unpaidAllowance;
     private String unpaidAllowanceReason;
@@ -24,7 +24,7 @@ public class PayrollHistoryPaymentDTO {
                 this.retroactivePay +
                 this.deductionAmount +
                 this.monthlyLeavePay +
-                this.mealAllowance +
+                this.dailyMealAllowance +
                 this.overTimePay +
                 this.unpaidAllowance +
                 this.otherAllowance +

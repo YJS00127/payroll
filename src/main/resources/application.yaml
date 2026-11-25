@@ -9,6 +9,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 
 holiday:
   api-key: ${HOLIDAY_API_KEY}

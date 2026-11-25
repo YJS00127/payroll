@@ -63,7 +63,10 @@ public class LeaveServiceImpl implements LeaveService{
         Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
 
-        LeaveRecord leaveRecord = requestDTO.toEntity(empId);
+        double previousTotalLeave = leaveRecordRepository.findPreviousTotalLeave(empId, requestDTO.getYear(), requestDTO.getMonth())
+                .orElse(0.0);
+
+        LeaveRecord leaveRecord = requestDTO.toEntity(empId, previousTotalLeave);
 
         leaveRecordRepository.save(leaveRecord);
 
@@ -86,8 +89,7 @@ public class LeaveServiceImpl implements LeaveService{
 
         return new ResultDTO("success", "휴가 정보 수정 성공");
     }
-// 총 휴가 : 4, 발생휴가: 1  / (수정) 총 휴가 5, 발생휴가: 1 -> 총 휴가 : 6, 발생휴가: 1
-// 발생휴가 전과 후가 다를 때만 total에 더하기
+
     @Override
     @Transactional
     public ResultDTO deleteLeave(Long id){
@@ -120,9 +122,9 @@ public class LeaveServiceImpl implements LeaveService{
 
             predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
-            if(StringUtils.hasText(searchDTO.getEmpCode())){
-                Long empId = employeeRepository.findIdByCode(searchDTO.getEmpCode())
-                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다."));
+            if(StringUtils.hasText(searchDTO.getKeyword())){
+                Long empId = employeeRepository.findIdByNameOrCode(searchDTO.getKeyword())
+                                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
                 predicates.add(cb.equal(root.get("empId"), empId));
             }
             if(searchDTO.getYear() != null){
@@ -130,9 +132,6 @@ public class LeaveServiceImpl implements LeaveService{
             }
             if(searchDTO.getMonth() != null){
                 predicates.add(cb.equal(root.get("month"), searchDTO.getMonth()));
-            }
-            if(searchDTO.getRemainingLeave() != null){
-                predicates.add(cb.equal(root.get("remainingLeave"), searchDTO.getRemainingLeave()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -12,14 +12,16 @@ public class LeaveUsageResponseDTO {
     private String empName;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int usedDays;
+    private double usedDays;
+    private String leaveType;
 
-    public LeaveUsageResponseDTO(LeaveUsage leaveUsage, String empCode, String empName){
+    public LeaveUsageResponseDTO(LeaveUsage leaveUsage, String empCode, String empName, String leaveType){
         this.id = leaveUsage.getId();
         this.empCode = empCode;
         this.empName = empName;
         this.startDate = leaveUsage.getStartDate();
         this.endDate = leaveUsage.getEndDate();
         this.usedDays = leaveUsage.getUsedDays();
+        this.leaveType = leaveUsage.getLeaveType();
     }
 }

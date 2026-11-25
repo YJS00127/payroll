@@ -45,9 +45,13 @@ public class WorkHistory {
     @Column(name = "weekly_holiday_days")
     private int weeklyHolidayDays;
 
+    @Comment("공제 시간")
+    @Column(name = "deduction_minutes")
+    private int deductionMinutes;
+
     @Builder
-    public WorkHistory(Long empId, int year, int month, int totalWorkMinutes, int workDays,
-                       int overtimeWorkMinutes, int holidayWorkMinutes, int weeklyHolidayDays) {
+    public WorkHistory(Long empId, int year, int month, int totalWorkMinutes, int workDays, int overtimeWorkMinutes,
+                       int holidayWorkMinutes, int weeklyHolidayDays, int deductionMinutes) {
         this.empId = empId;
         this.year = year;
         this.month = month;
@@ -56,6 +60,7 @@ public class WorkHistory {
         this.overtimeWorkMinutes = overtimeWorkMinutes;
         this.holidayWorkMinutes = holidayWorkMinutes;
         this.weeklyHolidayDays = weeklyHolidayDays;
+        this.deductionMinutes = deductionMinutes;
     }
 
     public void add(AttendanceRecord attendanceRecord){
@@ -71,12 +76,13 @@ public class WorkHistory {
     }
 
     public void update(int workDays, int totalWorkMinutes, int overtimeWorkMinutes,
-                       int holidayWorkMinutes, int weeklyHolidayDays){
+                       int holidayWorkMinutes, int weeklyHolidayDays, int deductionMinutes){
         this.workDays = workDays;
         this.totalWorkMinutes = totalWorkMinutes;
         this.overtimeWorkMinutes = overtimeWorkMinutes;
         this.holidayWorkMinutes = holidayWorkMinutes;
         this.weeklyHolidayDays = weeklyHolidayDays;
+        this.deductionMinutes = deductionMinutes;
     }
 
     public void updateWeeklyHolidayDays(int weeklyHolidayDays){

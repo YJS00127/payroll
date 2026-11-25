@@ -71,8 +71,12 @@ public class AttendanceServiceImpl implements AttendanceService {
         Employee emp = employeeRepository.findByCode(requestDTO.getEmpCode())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
+        if(requestDTO.getStatus().equals("휴가")) {
+            throw new IllegalArgumentException("해당 날짜에 휴가가 존재합니다");
+        }
+
         if(attendanceRecordRepository.existsByEmpIdAndWorkDate(emp.getId(), requestDTO.getWorkDate())) {
-            throw new EntityExistsException("해당 날짜의 근로 기록이 이미 존재합니다");
+            throw new EntityExistsException("이미 존재하는 근로 기록입니다");
         }
 
         if(!requestDTO.getStatus().equals("휴가") &&
@@ -82,16 +86,32 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         Map<String, Integer> work = calculateWorkHour(requestDTO, emp);
 
-        AttendanceRecord attendance = AttendanceRecord.builder()
-                .empId(emp.getId())
-                .workDate(requestDTO.getWorkDate())
-                .checkIn(requestDTO.getCheckIn())
-                .checkOut(requestDTO.getCheckOut())
-                .workMinutes(work.get("workMinutes"))
-                .overtimeWorkMinutes(work.get("overtimeWorkMinutes"))
-                .holidayWorkMinutes(work.get("holidayWorkMinutes"))
-                .status(requestDTO.getStatus())
-                .build();
+        AttendanceRecord attendance;
+
+        if(holidayService.isHoliday(requestDTO.getWorkDate())){
+            attendance = AttendanceRecord.builder()
+                    .empId(emp.getId())
+                    .workDate(requestDTO.getWorkDate())
+                    .checkIn(requestDTO.getCheckIn())
+                    .checkOut(requestDTO.getCheckOut())
+                    .workMinutes(work.get("workMinutes"))
+                    .overtimeWorkMinutes(work.get("overtimeWorkMinutes"))
+                    .holidayWorkMinutes(work.get("holidayWorkMinutes"))
+                    .deductionMinutes(work.get("deductionMinutes"))
+                    .status("휴일 근로")
+                    .build();
+        }else {
+            attendance = AttendanceRecord.builder()
+                    .empId(emp.getId())
+                    .workDate(requestDTO.getWorkDate())
+                    .checkIn(requestDTO.getCheckIn())
+                    .checkOut(requestDTO.getCheckOut())
+                    .workMinutes(work.get("workMinutes"))
+                    .overtimeWorkMinutes(work.get("overtimeWorkMinutes"))
+                    .holidayWorkMinutes(work.get("holidayWorkMinutes"))
+                    .status(requestDTO.getStatus())
+                    .build();
+        }
 
         attendanceRecordRepository.save(attendance);
         workService.autoSaveWork(attendance);
@@ -210,9 +230,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         Map<String, Integer> work = calculateWorkHour(requestDTO, emp);
 
-        attendance.update(requestDTO, empId, work.get("workMinutes"),
+        attendance.update(requestDTO, empId,
+                work.get("workMinutes"),
                 work.get("overtimeWorkMinutes"),
-                work.get("holidayWorkMinutes")
+                work.get("holidayWorkMinutes"),
+                work.get("deductionMinutes")
         );
 
         workService.autoUpdateWorkHistory(empId, year, month);
@@ -275,7 +297,8 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             if(StringUtils.hasText(searchDTO.getKeyword())) {
                 String keyword = searchDTO.getKeyword().trim();
-                Long empId = employeeRepository.findIdByNameOrCode(keyword);
+                Long empId = employeeRepository.findIdByNameOrCode(keyword)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
                 predicates.add(cb.or(cb.equal(root.get("empId"), empId)));
             };
 
@@ -295,6 +318,14 @@ public class AttendanceServiceImpl implements AttendanceService {
         int workMinutes = 0;
         int overtimeWorkMinutes = 0;
         int holidayWorkMinutes = 0;
+        int deductionMinutes = 0;
+
+        if(requestDTO.getStatus().equals("조퇴") || requestDTO.getStatus().equals("지각")){
+            deductionMinutes = (int) ChronoUnit.MINUTES.between(requestDTO.getCheckIn(), requestDTO.getCheckOut());
+        }
+        if(requestDTO.getStatus().equals("결근")){
+            deductionMinutes = emp.getContractDailyWorkMinutes();
+        }
 
         LocalDate workDate = requestDTO.getWorkDate();
 
@@ -324,7 +355,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         return Map.of(
                 "workMinutes", workMinutes,
                 "overtimeWorkMinutes", overtimeWorkMinutes,
-                "holidayWorkMinutes", holidayWorkMinutes
+                "holidayWorkMinutes", holidayWorkMinutes,
+                "deductionMinutes", deductionMinutes
         );
     }
 }

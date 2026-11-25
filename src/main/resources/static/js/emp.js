@@ -86,14 +86,14 @@ function addEmp() {
             },
             {
                 name: "initialMonthlyIncome",
-                label: "최초 월평균 급여",
+                label: "월평균 급여",
                 type: "number",
                 min: 500000,
                 max: 5000000
             },
             {
                 name: "contractDailyWorkMinutes",
-                label: "계약 근로 시간",
+                label: "소정근로시간",
                 type: "number",
                 min: 1,
                 max: 10
@@ -153,14 +153,14 @@ async function editEmp(emp) {
             },
             {
                 name: "contractDailyWorkHour",
-                label: "계약 일일근로 시간",
+                label: "소정근로시간",
                 type: "number",
                 min: 1,
                 max: 10
             },
             {
                 name: "initialMonthlyIncome",
-                label: "최초 월평균 급여",
+                label: "월평균 급여",
                 type: "number",
                 min: 500000,
                 max: 5000000
@@ -223,8 +223,7 @@ async function delSelectedEmp(){
     if(ids.length !== 0) {
         if (!confirm("선택된 사원을 삭제하시겠습니까?")) return;
     } else{
-        alert("삭제할 사원을 선택해주세요");
-        return;
+        throw new Erro("삭제할 사원을 선택해주세요");
     }
 
     const response = await fetch(`api/emp`, {
@@ -252,11 +251,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         label: dept.name
     }));
     // 전체 선택 시 모든 행 선택, 해제
+
     document.getElementById("selectAll").addEventListener("change", function () {
         const checkboxes = document.querySelectorAll(".emp-checkbox");
 
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
+        checkboxes.forEach(checkboxes => {
+            checkboxes.checked = this.checked;
         })
     })
     // 모든 행 선택 시 전체 선택 활성화, 하나라도 해제 시 전체 선택 취소
@@ -279,4 +279,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     ], params => {
         loadEmpData(0, params)
     })
-});
+})

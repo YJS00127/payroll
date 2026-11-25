@@ -7,6 +7,7 @@ const statusOptions = [
     {value: "결근", label: "결근"},
     {value: "휴가", label: "휴가"},
     {value: "반차", label: "반차"},
+    {value: "반반차", label: "반반차"},
     {value: "병가", label: "병가"}
 ]
 
@@ -56,6 +57,26 @@ async function loadAttendanceData(page = 0, params = searchParams) {
     createPagination(pageData, nextPage => loadAttendanceData(nextPage));
 }
 
+document.addEventListener("change", e => {
+    if (!e.target.matches('[name="status"]')) return;
+
+    const checkIn = document.querySelector('[name="checkIn"]');
+    const checkOut = document.querySelector('[name="checkOut"]');
+
+    if (!checkIn || !checkOut) return;
+
+    const isAbsent = ["결근", "휴가", "병가"].includes(e.target.value);
+
+    if (isAbsent) {
+        checkIn.value = "";
+        checkOut.value = "";
+    }
+
+    checkIn.disabled = isAbsent;
+    checkOut.disabled = isAbsent;
+});
+
+
 async function addAttendance(){
     const keyword = searchParams.get("keyword");
     let empOptions = [];
@@ -87,7 +108,7 @@ async function addAttendance(){
                 type: "select",
                 options: statusOptions
             },
-            {name: "checkIn", label: "출근 시간", type: "time"},
+            {name: "checkIn", label: "출근 시간", type: "time", newRow: true},
             {name: "checkOut", label: "퇴근 시간", type: "time"}
         ],
         values: {
@@ -97,7 +118,11 @@ async function addAttendance(){
             checkOut: "18:00"
         },
         onSubmit: async data => {
-            await saveAttendance(data)
+            await saveAttendance({
+                ...data,
+                checkIn: data.checkIn || null,
+                checkOut: data.checkOut || null
+            })
         }
     })
 }

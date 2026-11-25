@@ -39,6 +39,10 @@ public class SalaryHistory {
     @Column(name = "reason")
     private String reason;
 
+    @Comment("급여 수정일")
+    @Column(name = "update_at", insertable = false, updatable = false)
+    private LocalDate updateAt;
+
     @Builder
     public SalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage, LocalDate effectiveDate, String reason){
         this.empId = empId;
