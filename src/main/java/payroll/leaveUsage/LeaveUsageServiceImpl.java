@@ -72,8 +72,6 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         LocalDate startDate = requestDTO.getStartDate();
         LocalDate endDate = requestDTO.getEndDate();
 
-        System.out.println(requestDTO.getLeaveType());
-
         double usedDays = 0;
         if(requestDTO.getLeaveType().equals("반차")){
             usedDays = 0.5;
@@ -84,8 +82,6 @@ public class LeaveUsageServiceImpl implements LeaveUsageService{
         if(requestDTO.getLeaveType().equals("휴가")){
             usedDays = calculateUsedDays(startDate, endDate);
         }
-
-        System.out.println(usedDays);
 
         LeaveRecord leaveRecord = leaveRecordRepository.findByEmpIdAndYearAndMonth(empId, startDate.getYear(), startDate.getMonthValue())
                 .orElseThrow(() -> new EntityNotFoundException("휴가 정보가 존재하지 않습니다"));

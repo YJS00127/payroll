@@ -1,11 +1,14 @@
 package payroll.employee;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
 import payroll.employee.dto.*;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public interface EmployeeService {
@@ -13,11 +16,11 @@ public interface EmployeeService {
 
     EmpResponseDTO findEmpById(Long id);
 
-    byte[] downloadEmpExcel() throws IOException;
+    void downloadEmpExcel(HttpServletResponse response) throws IOException;
 
-    ResultDTO createEmp(EmpRequestDTO requestDTO);
+    ResultDTO saveEmp(EmpRequestDTO requestDTO);
 
-    ResultDTO createEmpAll(List<EmpRequestDTO> requestDTOs);
+    ResultDTO uploadEmpExcel(MultipartFile file) throws IOException;
 
     ResultDTO updateEmp(Long id, EmpUpdateRequestDTO requestDTO);
 
@@ -25,5 +28,5 @@ public interface EmployeeService {
 
     ResultDTO deleteEmp(Long id);
 
-    ResultDTO deleteEmps(List<Long> id);
+    ResultDTO delSelectedEmp(List<Long> id);
 }

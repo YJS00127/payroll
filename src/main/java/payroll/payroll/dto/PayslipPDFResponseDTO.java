@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
-public class PayslipResponseDTO {
+public class PayslipPDFResponseDTO {
 
     private PayrollResponseDTO payroll;
 
@@ -35,8 +35,8 @@ public class PayslipResponseDTO {
     private int pensionBase;
     private int healthBase;
 
-    public PayslipResponseDTO(PayrollResponseDTO payroll, Employee emp, WorkHistory workHistory, InsuranceRateHistory insuranceRateHistory, String deptName,
-                              int pensionBase, int healthBase, boolean isRetirement){
+    public PayslipPDFResponseDTO(PayrollResponseDTO payroll, Employee emp, WorkHistory workHistory, InsuranceRateHistory insuranceRateHistory, String deptName,
+                                 int pensionBase, int healthBase, boolean isRetirement){
         this.payroll = payroll;
         this.empId = emp.getId();
         this.empBirth = emp.getBirth();

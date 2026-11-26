@@ -1,7 +1,7 @@
 let searchUsageParams = new URLSearchParams();
 let searchRecordParams = new URLSearchParams();
 
-async function loadLeaveUsageData(page=0, params = searchUsageParams){
+async function loadLeaveUsageData(page= searchUsageParams.get("page") ?? 0, params = searchUsageParams){
     searchUsageParams = new URLSearchParams(params);
     searchUsageParams.set("page", page);
 
@@ -175,7 +175,7 @@ async function delSelectedLeaveUsage(){
     alert(result.message);
 }
 
-async function loadLeaveRecordData(page=0, params= searchRecordParams){
+async function loadLeaveRecordData(page=searchRecordParams.get("page") ?? 0, params= searchRecordParams){
     searchRecordParams = new URLSearchParams(params);
     searchRecordParams.set("page", page);
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>급여 명세서</title>
+    <link href="/css/payslip-pdf.css" rel="stylesheet">
+</head>
+<body>
+<div class="payslip">
+    <h1 id="yearMonth">0000년 0월 급여명세서</h1>
+    <table class="basic-info-num">
+        <tr>
+            <th rowspan="2" class="info-title">기본정보</th>
+            <td class="info-no">
+                <div>no</div>
+                <div id="empNo"></div>
+            </td>
+        </tr>
+    </table>
+    <table class="basic-info">
+        <tr>
+            <th>귀속연월</th>
+            <td id="payslipYearMonth">0000년 00일</td>
+            <th>지급일</th>
+            <td id="paymentDay">00일</td>
+        </tr>
+        <tr>
+            <th>성명</th>
+            <td id="empName">000</td>
+            <th>생년월일</th>
+            <td id="empBirth">000000-0******</td>
+        </tr>
+        <tr>
+            <th>부서명</th>
+            <td id="deptName">0000</td>
+            <th>직위</th>
+            <td id="empRank">00</td>
+        </tr>
+    </table>
+    <br>
+    <table class="work-info">
+        <thead>
+        <tr>
+            <th>근로일수</th>
+            <th>주차일수</th>
+            <th>총 근로시간</th>
+            <th>공제시간</th>
+            <th>주차시간</th>
+        </tr>
+        </thead>
+        <tbody class="work-info-list"></tbody>
+    </table>
+    <br>
+    <span>지급내역</span>
+    <table class="payment-info">
+        <thead class="payment-head">
+        <tr>
+            <th>지급항목</th>
+            <th>지급액</th>
+            <th colspan="5">산출식 또는 산출방법</th>
+        </tr>
+        </thead>
+        <tbody class="payment-list"></tbody>
+    </table>
+    <br>
+    <span>공제내역</span>
+    <table class="deduction-info">
+        <thead class="deduction-head">
+        <tr>
+            <th>공제항목</th>
+            <th>공제액</th>
+            <th colspan="3">산출식 또는 산출방법(공단 고지 금액)</th>
+        </tr>
+        </thead>
+        <tbody class="deduction-list"></tbody>
+    </table>
+    <br>
+    <div class="net-salary">
+        <span class="">실 지급액</span>
+        <span id="netSalary"></span>
+    </div>
+    <div class="payslip-footer">
+        <div class="footer-top">
+            <div>귀하의 노고에 감사드립니다.</div>
+            <div id="paymentDate">0000년 00월 00일</div>
+        </div>
+        <br>
+        <div class="company-info">
+            <div>XXXXXXXXX</div>
+            <div>XXXXXXXXX</div>
+        </div>
+    </div>
+</div>
+<script src="/js/common.js"></script>
+<script src="/js/common/table.js"></script>
+<script src="/js/payslip-pdf.js"></script>
+</body>
+</html>

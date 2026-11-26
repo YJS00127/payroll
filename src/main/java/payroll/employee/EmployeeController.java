@@ -1,5 +1,6 @@
 package payroll.employee;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
 import payroll.employee.dto.*;
 
@@ -37,27 +39,27 @@ public class EmployeeController {
     }
 
     @GetMapping("/excel")
-    public ResponseEntity<byte[]> downloadEmpExcel() throws IOException {
-        byte[] excelData = employeeService.downloadEmpExcel();
+    public void downloadEmpExcel(HttpServletResponse response) throws IOException {
+        response.setHeader(
+                HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment()
+                        .filename("사원 엑셀 등록 양식.xlsx", StandardCharsets.UTF_8)
+                        .build().toString()
+                );
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.attachment()
-                                .filename("사원 엑셀 등록 양식.xlsx", StandardCharsets.UTF_8)
-                .build().toString())
-                .contentType(MediaType.parseMediaType(
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(excelData);
+        employeeService.downloadEmpExcel(response);
     }
 
     @PostMapping
     public ResponseEntity<ResultDTO> createEmp(@RequestBody @Valid EmpRequestDTO requestDTO){
-        return ResponseEntity.ok(employeeService.createEmp(requestDTO));
+        return ResponseEntity.ok(employeeService.saveEmp(requestDTO));
     }
 
-//    @PostMapping("/emps")
-//    public ResponseEntity<ResultDTO> createEmpAll(@RequestBody @Valid List<EmpRequestDTO> requestDTOs){
-//        return ResponseEntity.ok(employeeService.createEmpAll(requestDTOs));
-//    }
+    @PostMapping("/excel")
+    public ResponseEntity<ResultDTO> uploadEmpExcel(@RequestParam("file") MultipartFile file) throws IOException{
+        return ResponseEntity.ok(employeeService.uploadEmpExcel(file));
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<ResultDTO> updateEmp(@PathVariable Long id,
@@ -72,6 +74,6 @@ public class EmployeeController {
 
     @DeleteMapping
     public ResponseEntity<ResultDTO> deleteEmpAll(@RequestBody List<Long> id){
-        return ResponseEntity.ok(employeeService.deleteEmps(id));
+        return ResponseEntity.ok(employeeService.delSelectedEmp(id));
     }
 }

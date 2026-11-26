@@ -16,11 +16,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     @Query("SELECT e.id FROM Employee e WHERE e.code = :code")
     Optional<Long> findIdByCode(@Param("code") String code);
 
-    List<Employee> findByCodeIn(Set<String> codes);
-
     boolean existsByCode(@Param("code") String code);
-
-    boolean existsByCodeIn(@Param("code") Set<String> codes);
 
     boolean existsByDeptIdAndDeleteYn(@Param("deptId")Long deptId, @Param("deleteYn")String deleteYn);
 
@@ -29,5 +25,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     @Query("SELECT e.id FROM Employee e WHERE e.name = :keyword OR e.code = :keyword")
     Optional<Long> findIdByNameOrCode(@Param("keyword") String keyword);
 
-    int findContractDailyWorkHourById(@Param("id")Long id);
+    @Query("SELECT e FROM Employee e wHERE e.name = :keyword OR e.code = :keyword")
+    Optional<Employee> findAllByNameOrCode(@Param("keyword")String keyword);
+
+    List<Long> findIdsByRank(@Param("rank") String rank);
 }
+

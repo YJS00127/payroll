@@ -1,12 +1,13 @@
 package payroll.payroll;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import payroll.common.dto.ResultDTO;
 import payroll.payroll.dto.PayrollRequestDTO;
 import payroll.payroll.dto.PayrollResponseDTO;
 import payroll.payroll.dto.PayrollSearchDTO;
-import payroll.payroll.dto.PayslipResponseDTO;
+import payroll.payroll.dto.PayslipPDFResponseDTO;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,11 +17,11 @@ public interface PayrollService {
 
     PayrollResponseDTO findPayrollById(Long id);
 
-    PayslipResponseDTO findPayslipDataById(Long payrollId);
+    PayslipPDFResponseDTO findPayslipDataById(Long payrollId);
 
     ResultDTO savePayroll(PayrollRequestDTO requestDTO);
 
-    byte[] downloadPayrollExcel() throws IOException;
+    void downloadPayrollExcel(HttpServletResponse response) throws IOException;
 
     ResultDTO updatePayroll(PayrollRequestDTO requestDTO, Long id);
 

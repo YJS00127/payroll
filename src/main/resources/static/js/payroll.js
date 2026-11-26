@@ -1,6 +1,6 @@
 let searchParams = new URLSearchParams();
 
-async function loadPayrollData(page=0, params = searchParams){
+async function loadPayrollData(page=searchParams.get("page") ?? 0, params = searchParams){
     searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
@@ -84,8 +84,8 @@ async function editPayroll(payroll){
             {name: "unpaidAllowance", label: "미지급수당", type: "number"},
             {name: "unpaidAllowanceReason", label: "미지급수당 사유", type: "number"},
             {name: "dailyMealAllowance", label: "식대", type: "number"},
-            {name: "otherAllowance", label: "기타수당", type: "number", newRow: true},
-            {name: "retirementIncomeTax", label: "퇴직정산소득세", type: "number"},
+            {name: "otherAllowance", label: "기타수당", type: "number"},
+            {name: "retirementIncomeTax", label: "퇴직정산소득세", type: "number", newRow: true},
             {name: "retirementLocalIncomeTax", label: "소득세", type: "number"}
         ], values: {
             ...payrollData,
@@ -129,7 +129,7 @@ async function delPayroll(id){
 }
 
 async function delSelectedPayroll(){
-    const ids = [...document.querySelectorAll(".payroll-checkbox")]
+    const ids = [...document.querySelectorAll(".payroll-checkbox:checked")]
         .map(checkbox => Number(checkbox.value));
 
     if(ids.length !== 0){

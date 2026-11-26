@@ -3,6 +3,7 @@ package payroll.employee;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,18 +11,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
 import payroll.common.excel.ExcelService;
 import payroll.employee.dto.*;
 import payroll.entity.*;
 import payroll.repository.*;
-import payroll.salaryHistory.SalaryHistoryService;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +27,6 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
-    private final LeaveRecordRepository leaveRecordRepository;
     private final ExcelService excelService;
 
     @Override
@@ -54,17 +51,18 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
-    public byte[] downloadEmpExcel() throws IOException{
+    @Transactional
+    public void downloadEmpExcel(HttpServletResponse response) throws IOException{
         List<String> headers = List.of(
                 "이름", "사원코드", "부서명", "직급", "입사일", "생년월일",
                 "성별", "시급", "월평균 급여", "소정근로시간");
 
-        return excelService.downloadExcel("사원등록", headers);
+        excelService.downloadExcel("사원등록", headers, response);
     }
 
     @Override
     @Transactional
-    public ResultDTO createEmp(EmpRequestDTO requestDTO) {
+    public ResultDTO saveEmp(EmpRequestDTO requestDTO) {
         Long deptId = departmentRepository.findIdByName(requestDTO.getDeptName())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
         Employee emp = requestDTO.toEntity(deptId);
@@ -75,59 +73,19 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         employeeRepository.save(emp);
 
-        return new ResultDTO("success", "사원 저장 성공");
+        return new ResultDTO("success", "사원 등록 성공");
     }
 
     @Override
     @Transactional
-    public ResultDTO createEmpAll(List<EmpRequestDTO> requestDTOs){
-        if(requestDTOs == null || requestDTOs.isEmpty()){
-            throw new IllegalArgumentException("등록할 사원이 입력되지 않았습니다");
-        }
+    public ResultDTO uploadEmpExcel(MultipartFile file) throws IOException{
+        List<String> headers = List.of(
+                "이름", "사원코드", "부서명", "직급", "입사일", "생년월일",
+                "성별", "시급", "월평균 급여", "소정근로시간");
 
-        Set<String> codes = requestDTOs.stream()
-                .map(EmpRequestDTO::getCode)
-                .collect(Collectors.toSet());
+        excelService.uploadExcel(file, headers);
 
-        if(codes.size() != requestDTOs.size()){
-            throw new EntityExistsException("중복되는 사원코드가 존재합니다");
-        }
-
-        if(employeeRepository.existsByCodeIn(codes)){
-            throw new EntityExistsException("이미 등록된 사원코드가 존재합니다");
-        }
-
-        Set<String> deptNames = requestDTOs.stream()
-                .map(EmpRequestDTO::getDeptName)
-                .collect(Collectors.toSet());
-
-        Map<String, Long> deptMap = departmentRepository.findByNameInAndDeleteYn(deptNames, "N").stream()
-                .collect(Collectors.toMap(
-                        Department::getName,
-                        Department::getId
-                ));
-
-        if(deptNames.size() != deptMap.size()){
-            throw new EntityNotFoundException("존재하지 않는 부서가 포함되어있습니다.");
-        }
-
-        List<Employee> employees = requestDTOs.stream()
-                .map(dto -> dto.toEntity(deptMap.get(dto.getDeptName())))
-                .toList();
-
-        List<Employee> saved = employeeRepository.saveAll(employees);
-
-        List<LeaveRecord> leaves = saved.stream()
-                .map(emp -> LeaveRecord.builder()
-                        .empId(emp.getId())
-                        .year(LocalDate.now().getYear())
-                        .month(LocalDate.now().getMonthValue())
-                        .build())
-                .toList();
-
-        leaveRecordRepository.saveAll(leaves);
-
-        return new ResultDTO("success", "사원 등록 성공");
+        return new ResultDTO("success", "사원 엑셀 등록 성공");
     }
 
     @Override
@@ -166,7 +124,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public ResultDTO deleteEmps(List<Long> id){
+    public ResultDTO delSelectedEmp(List<Long> id){
         List<Employee> employees = employeeRepository.findAllById(id);
 
         if(employees.size() != Set.copyOf(id).size()

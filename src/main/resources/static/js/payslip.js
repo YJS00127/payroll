@@ -1,154 +1,196 @@
-async function loadPayslipData(id){
-    const response = await fetch(`/api/payslip/${id}`)
-    const data = await response.json();
+let searchParams = new URLSearchParams();
 
-    const payrollData = data.payroll;
-    console.log(data)
+let deptOptions = [];
+const empRankOptions = [
+    {value: "부장", label: "부장"},
+    {value: "차장", label: "차장"},
+    {value: "과장", label: "과장"},
+    {value: "대리", label: "대리"},
+    {value: "사원", label: "사원"}
+]
 
-    document.getElementById("yearMonth").innerText =
-        `${payrollData.year}년 ${payrollData.month}월 급여명세서`
+async function loadPayslipData(page = searchParams.get("page") ?? 0, params = searchParams){
+    searchParams = new URLSearchParams(params);
+    searchParams.set("page", page);
 
-    document.getElementById("empNo").innerText =
-        `${data.empId}`
+    const response = await fetch(`/api/payroll?${searchParams.toString()}`)
+    const pageData = await response.json();
 
-    const birth = data.empBirth;
+    console.log(pageData)
 
-    // info-title (기본정보)
-    const basicInfo = {
-        payslipYearMonth: `${payrollData.year}년 ${payrollData.month<10 ? `0${payrollData.month}월` : `${payrollData.month}월`}`,
-        paymentDay: payrollData.paymentDate ? `${payrollData.paymentDate.slice(8, 10)}일` : "",
-        empName: `${payrollData.empName}(${data.deptName})`,
-        empBirth: `${birth.slice(2).replaceAll("-", "")}-${getNumByGender(data.empBirth, data.empGender)}******`,
-        deptName: data.deptName,
-        empRank: data.empRank
+    const paySlipData = pageData.content.map(payslip => ({
+        ...payslip,
+        yearMonth: `${payslip.year}.${payslip.month}`,
+        payrollStatus: `${payslip.paymentDate ? `지급 완료` : `${payslip.confirmedAt ? `확정` : `미확정`}`}`,
+        paymentDate: `${payslip.paymentDate || "-"}`
+    }))
+
+    renderTable(".payslip-list", paySlipData, [
+        {name: "id", type: "checkbox", className: "payslip-checkbox"},
+        {name: "yearMonth"},
+        {name: "empName"},
+        {name: "empCode"},
+        {name: "paymentDate"},
+        {name: "payrollStatus"},
+        {
+            type: "button",
+            buttons: [
+                {label: "미리보기", onClick: payslip => previewPayslip(payslip.id)}
+            ]
+        }]
+    )
+
+    document.getElementById("totalCount").innerText = `총 ${pageData.totalElements}건`;
+
+    createPagination(pageData, nextPage => loadPayslipData(nextPage));
+}
+
+// 급여 확정
+async function confirmedPayroll(){
+    const ids = [...document.querySelectorAll(".payslip-checkbox:checked")]
+        .map(checkbox => Number(checkbox.value));
+
+    if(ids.length === 0){
+        throw new Error("선택된 급여내역이 없습니다")
     }
 
-    Object.entries(basicInfo).forEach(([id, value]) => {
-        document.getElementById(id).textContent = value;
+    const confirmedAt = new Date().toLocaleDateString("sv-SE");
+
+    const requestData = {
+        ids: ids,
+        date: confirmedAt
+    }
+
+    const response = await fetch(`/api/payslip/confirm`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(requestData)
+    })
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "급여 확정 실패")
+    }
+
+    alert(result.message);
+    await loadPayslipData()
+}
+
+// 급여 확정 취소
+async function cancelConfirmed(){
+    const ids = [...document.querySelectorAll(".payslip-checkbox:checked")]
+        .map(checkbox => Number(checkbox.value));
+
+    if(ids.length === 0){
+        throw new Error("선택된 급여내역이 없습니다")
+    }
+
+    const response = await fetch(`/api/payslip/cancel`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(ids)
+    });
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "급여 확정 취소 실패")
+    }
+
+    alert(result.message);
+    await loadPayslipData();
+}
+
+// 급여 지급 확정
+function confirmedPayment(){
+    const ids = [...document.querySelectorAll(".payslip-checkbox:checked")]
+        .map(checkbox => Number(checkbox.value));
+
+    if(ids.length === 0){
+        throw new Error("선택된 급여내역이 없습니다")
+    }
+
+    openModal({
+        title: "급여 지급 확정",
+        fields: [
+            {name: "paymentDate", label: "급여지급일", type: "date"}
+        ], values: {
+            paymentDate: new Date().toLocaleDateString("sv-SE")
+        }, onSubmit: async data => {
+            await updatePaymentDate(data, ids);
+            await loadPayslipData();
+    }}
+    )
+}
+
+async function updatePaymentDate(data, ids){
+    const requestData = {
+        ids: ids,
+        date: data.paymentDate
+    }
+
+    const response = await fetch(`/api/payslip/payment`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(requestData)
+    })
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "급여 지급 확정 실패")
+    }
+
+    alert(result.message);
+}
+
+function previewPayslip(id){
+    window.open(`/payslip-pdf/${id}`, "_self");
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const response = await fetch(`/api/dept`);
+    const deptData = await response.json();
+
+    deptOptions = deptData.map(dept => ({
+        value: dept.name,
+        label: dept.name
+    }))
+
+    document.getElementById("selectAll").addEventListener("change", function () {
+        const checkboxes = document.querySelectorAll(".payslip-checkbox")
+
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        })
     })
 
-    // work-info (근로정보)
-    const workData = {
-        workDays: data.workDays || "",
-        weeklyHolidayDays: data.weeklyHolidayDays || "",
-        totalWorkHour: data.totalWorkHour || "",
-        deductionHour: data.deductionHour || "",
-        weeklyHolidayHour: data.weeklyHolidayHour || "",
-    }
+    document.querySelector(".payslip-list").addEventListener("change", () => {
+        const checkboxes = document.querySelectorAll(".payslip-checkbox");
+        const selectAll = document.getElementById("selectAll")
 
-    renderTable(".work-info-list", [workData], [
-        {name: "workDays"},
-        {name: "weeklyHolidayDays"},
-        {name: "totalWorkHour"},
-        {name: "deductionHour"},
-        {name: "weeklyHolidayHour"}
-    ])
-
-    // payment-list (지급내역)
-    const paymentData = [
-        createPayment("기본급", payrollData.basicSalary, "총 근로시간", "시급"),
-        createPayment("주차수당", payrollData.weeklyHolidayPay, "주차시간", "시급"),
-        createPayment("전월소급분", payrollData.retroactivePay),
-        createPayment("공제금", payrollData.deductionAmount),
-        createPayment("월차수당", payrollData.monthlyLeavePay, "미사용월차", "일급"),
-        createPayment("식대", payrollData.daliyMealAllowance, "일일 식대", "근로일수"),
-        createPayment("연장근로수당", payrollData.overtimePay, "연장근로시간", "시급", "1.5"),
-        createPayment("미지급수당", payrollData.unpaidAllowance, payrollData.unpaidAllowanceReason),
-        createPayment("기타수당", payrollData.otherAllowance),
-        createPayment("휴일근로수당", payrollData.holidayWorkPay),
-        createPayment("지급합계", payrollData.grossSalary)
-    ]
-
-    renderTable(".payment-list", paymentData, [
-        {name: "name"},
-        {name: "payment"},
-        {name: "leftDes"},
-        {name: "operator"},
-        {name: "rightDes"},
-        {name: "rate"}
-    ]);
+        selectAll.checked = checkboxes.length > 0 &&
+            [...checkboxes].every(checkbox => checkbox.checked);
+    });
 
 
-
-    // deduction-list (공제내역)
-    const deductionData = [
-        createDeduction("국민연금", payrollData.nationalPension,
-            data.pensionBase===0 ? "계약직평균급여" : "기준소득월액",
-            data.nationalPensionRate),
-        createDeduction("급여합계", payrollData.healthInsurance,
-            data.pensionBase===0 ? "급여합계" : "보수총액",
-            data.healthInsuranceRate),
-        createDeduction("노인장기요양", payrollData.longTermCareInsurance, "건강보험공제금", data.longTermCareInsuranceRate),
-        createDeduction("고용보험", payrollData.employmentInsurance, "급여합계", data.employmentInsuranceRate),
-        createDeduction("건강보험정산", payrollData.healthInsuranceAdjustment,
-            data.isRetirement ? "퇴직정산" : ""),
-        // 퇴직으로 인한 건강보험정산 발생 시 "퇴직정산" 출력
-        createDeduction("요양보험정산", payrollData.longTermCareAdjustment,
-            data.isRetirement ? "퇴직정산" : ""),
-        createDeduction("퇴직정산소득세", payrollData.retirementIncomeTax),
-        createDeduction("퇴직정산주민세", payrollData.retirementLocalIncomeTax, "퇴직정산소득세공제금", data.localIncomeTaxRate),
-        createDeduction("소득세(사업소세)", payrollData.incomeTax),
-        createDeduction("주민세(사업소세)", payrollData.localIncomeTax, "소득세공제금", data.localIncomeTaxRate),
-        createDeduction("공제합계", payrollData.totalDeduction)
-    ]
-
-    renderTable(".deduction-list", deductionData, [
-        {name: "name"},
-        {name: "deduction"},
-        {name: "leftDes"},
-        {name: "operator"},
-        {name: "rate"}
-    ])
-
-    document.getElementById("netSalary").innerText = payrollData.netSalary.toLocaleString("ko-KR");
-
-    document.getElementById("paymentDate").innerText =
-        `${payrollData.paymentDate.split("-")[0]}년 ${payrollData.paymentDate.split("-")[1]}월 ${payrollData.paymentDate.split("-")[2]}일`
-
-}
-
-function getNumByGender(birth, gender){
-    if(birth.Year < 2000){
-        if(gender === "남"){
-            return "1"
-        } else{
-            return "2"
-        }
-    } else{
-        if(gender === "남"){
-            return "3"
-        } else{
-            return "4"
-        }
-    }
-}
-
-function createPayment(name, payment, leftDes, rightDes, rate){
-    const checkReason = payment && name !== "미지급수당";
-    const checkOvertimeOrHoliday = payment && (name === "연장근로수당" || name === "휴일근로수당")
-
-    return {
-        name,
-        payment: payment ? payment.toLocaleString("ko-KR") : "",
-        leftDes: payment ? leftDes : "",
-        operator: checkReason && leftDes? "x" : "",
-        rightDes: checkReason ? rightDes : "",
-        rate: checkReason ? rate : "",
-        operators: checkOvertimeOrHoliday ? "x" : "",
-        rate2: checkOvertimeOrHoliday ? (name==="연장근로수당" ? "1.5" : "2") : ""
-    };
-}
-
-function createDeduction(name, deduction, leftDes, rate) {
-    return {
-        name,
-        deduction: deduction ? deduction.toLocaleString("ko-KR") : "",
-        leftDes: deduction ? leftDes : "",
-        operator: deduction && rate != null ? "x" : "",
-        rate: deduction && rate != null ? `${rate}%` : ""
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadPayslipData(22);
+    createSearchBox([
+        {name: "keyword", placeholder: "사원명 또는 사원코드 검색"},
+        {
+            name: "deptName",
+            type: "select",
+            placeholder: "부서 전체",
+            options: deptOptions
+        },
+        {
+            name: "empRank",
+            type: "select",
+            placeholder: "직급 전체",
+            options: empRankOptions
+        },
+        {name: "year", placeholder: "연도"},
+        {name: "month", placeholder: "월"}
+    ], params => {
+        loadPayslipData()
+    })
 })
+
+

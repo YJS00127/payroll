@@ -12,7 +12,7 @@ const statusOptions = [
 ]
 
 // 근태 데이터
-async function loadAttendanceData(page = 0, params = searchParams) {
+async function loadAttendanceData(page = searchParams.get("page") ?? 0, params = searchParams) {
     searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
@@ -45,8 +45,8 @@ async function loadAttendanceData(page = 0, params = searchParams) {
         {
             type: "button",
             buttons: [
-                {label: "수정", onClick : attendance => editAttendance(attendance)},
-                {label: "삭제", onClick : attendance => delAttendance(attendance.id)}
+                {label: "수정", onClick: attendance => editAttendance(attendance)},
+                {label: "삭제", onClick: attendance => delAttendance(attendance.id)}
             ]
         }]
     );

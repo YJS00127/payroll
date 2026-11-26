@@ -51,7 +51,12 @@ public class ViewController {
     }
 
     @GetMapping("/payslip")
-    public String payslip() {
+    public String payslip(){
         return "payslip";
+    }
+
+    @GetMapping("/payslip-pdf/{id}")
+    public String payslipPdf() {
+        return "payslip-pdf";
     }
 }

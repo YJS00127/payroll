@@ -13,38 +13,38 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/dept")
 public class DepartmentController {
 
     private final DepartmentService deptService;
 
-    @GetMapping("/dept")
+    @GetMapping
     public ResponseEntity<List<DeptResponseDTO>> getAllDept(){
         return ResponseEntity.ok(deptService.getAllDept());
     }
 
-    @GetMapping("/dept/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<DeptResponseDTO> getDeptById(@PathVariable Long id){
         return ResponseEntity.ok(deptService.getDeptById(id));
     }
 
-    @PostMapping("/dept")
+    @PostMapping
     public ResponseEntity<ResultDTO> createDept(@RequestBody @Valid DeptRequestDTO request){
         return ResponseEntity.ok(deptService.saveDept(request));
     }
 
-    @PutMapping("dept/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ResultDTO> updateDept(@RequestBody @Valid DeptRequestDTO request,
                                                 @PathVariable Long id){
         return ResponseEntity.ok(deptService.updateDept(id, request));
     }
 
-    @DeleteMapping("/dept/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ResultDTO> deleteDept(@PathVariable Long id){
         return ResponseEntity.ok(deptService.deleteDept(id));
     }
 
-    @DeleteMapping("/depts")
+    @DeleteMapping
     public ResponseEntity<ResultDTO> deleteDeptAll(@RequestBody List<Long> ids){
         return ResponseEntity.ok(deptService.deleteDeptAll(ids));
     }

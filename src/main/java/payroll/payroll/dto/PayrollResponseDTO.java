@@ -39,6 +39,7 @@ public class PayrollResponseDTO {
     private int totalDeduction;
     private int netSalary;
     private LocalDate paymentDate;
+    private LocalDate confirmedAt;
 
     public PayrollResponseDTO(PayrollHistory payrollHistory, Employee emp){
         this.id = payrollHistory.getId();
@@ -72,5 +73,6 @@ public class PayrollResponseDTO {
         this.totalDeduction = payrollHistory.getTotalDeduction();
         this.netSalary = payrollHistory.getNetSalary();
         this.paymentDate = payrollHistory.getPaymentDate();
+        this.confirmedAt = payrollHistory.getConfirmedAt();
     }
 }

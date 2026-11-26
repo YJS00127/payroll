@@ -1,5 +1,5 @@
 let searchParams = new URLSearchParams();
-async function loadWorkData(params = searchParams){
+async function loadWorkData(page=searchParams.get("page") ?? 0,params = searchParams){
     searchParams = new URLSearchParams(params);
 
     const response = await fetch(`/api/work-history?${searchParams.toString()}`);
@@ -29,6 +29,8 @@ async function loadWorkData(params = searchParams){
         {name: "holidayWorkHour"},
         {name: "weeklyHolidayDays"}
     ]);
+
+    createPagination(data, nextPage => loadWorkData(nextPage))
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -37,6 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
         {name: "year", placeholder: "연도"},
         {name: "month", placeholder: "월"}
     ], params => {
-        loadWorkData(params)
+        loadWorkData(0, params)
     })
 });

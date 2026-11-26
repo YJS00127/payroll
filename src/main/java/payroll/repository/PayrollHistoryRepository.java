@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import payroll.entity.PayrollHistory;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PayrollHistoryRepository extends JpaRepository<PayrollHistory, Long>, JpaSpecificationExecutor<PayrollHistory> {
@@ -16,4 +17,7 @@ public interface PayrollHistoryRepository extends JpaRepository<PayrollHistory, 
 
     @Query(value = "SELECT SUM(health_insurance) FROM payroll_history WHERE emp_id = :empId AND year = :year", nativeQuery = true)
     Optional<Integer> sumYearHealthInsurance(@Param("empId")Long empId, @Param("year")int year);
+
+    @Query("SELECT p FROM PayrollHistory p WHERE p.id IN :ids AND p.deleteYn = 'N'")
+    List<PayrollHistory> findByIds(@Param("ids") List<Long> ids);
 }

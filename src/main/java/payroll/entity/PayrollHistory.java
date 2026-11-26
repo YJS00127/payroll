@@ -141,6 +141,10 @@ public class PayrollHistory {
     @Column(name = "delete_yn", insertable = false)
     private String deleteYn;
 
+    @Comment("급여 확정일")
+    @Column(name = "confirmed_at")
+    private LocalDate confirmedAt;
+
     public void update(PayrollHistoryPaymentDTO payment, PayrollHistoryDeductionDTO deduction,
                        int grossSalary, int totalDeduction ,int netSalary){
         // 지급액
@@ -176,7 +180,15 @@ public class PayrollHistory {
         this.deleteYn = "Y";
     }
 
-    public void confirmPayment(LocalDate paymentDate){
+    public void confirmPayroll(LocalDate confirmedAt){
+        this.confirmedAt = confirmedAt;
+    }
+
+    public void confirmPaymentDate(LocalDate paymentDate){
         this.paymentDate = paymentDate;
+    }
+
+    public void cancelConfirmedAt(){
+        this.confirmedAt = null;
     }
 }

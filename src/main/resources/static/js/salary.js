@@ -1,7 +1,7 @@
 let searchHourlyWageParams = new URLSearchParams()
 let searchSalaryParams = new URLSearchParams()
 
-async function loadHourlyWageData(page=0, params = searchHourlyWageParams){
+async function loadHourlyWageData(page=searchHourlyWageParams.get("page") ?? 0, params = searchHourlyWageParams){
     searchHourlyWageParams = new URLSearchParams(params);
     searchHourlyWageParams.set("page", page);
 
@@ -67,7 +67,7 @@ async function addSalaryHistory(data){
     await loadHourlyWageData(searchHourlyWageParams);
 }
 
-async function loadSalaryData(page=0, params = searchSalaryParams){
+async function loadSalaryData(page=searchSalaryParams.get("page") ?? 0, params = searchSalaryParams){
     searchSalaryParams = new URLSearchParams(params);
     searchSalaryParams.set("page", page);
 

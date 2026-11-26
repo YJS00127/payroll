@@ -63,7 +63,7 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
         if(requestDTO.getPreviousHourlyWage() == requestDTO.getNewHourlyWage()){
             throw new IllegalArgumentException("변경될 급여를 다시 입력해주세요");
         }
-        System.out.println(requestDTO.getReason());
+
         if(requestDTO.getReason() == null || requestDTO.getReason().isEmpty()){
             throw new IllegalArgumentException("급여 변경 사유를 입력해주세요");
         }

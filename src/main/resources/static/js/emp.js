@@ -1,6 +1,6 @@
 let searchParams = new URLSearchParams();
 // 사원 목록 조회
-async function loadEmpData(page=0, params = searchParams) {
+async function loadEmpData(page = searchParams.get("page") ?? 0, params = searchParams) {
     searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
@@ -101,7 +101,7 @@ function addEmp() {
         ],
         onSubmit: async data => {
             await saveEmp(data);
-            await loadEmpData(0, searchParams);
+            await loadEmpData();
         }
     });
 }
@@ -223,7 +223,7 @@ async function delSelectedEmp(){
     if(ids.length !== 0) {
         if (!confirm("선택된 사원을 삭제하시겠습니까?")) return;
     } else{
-        throw new Erro("삭제할 사원을 선택해주세요");
+        throw new Error("삭제할 사원을 선택해주세요");
     }
 
     const response = await fetch(`api/emp`, {

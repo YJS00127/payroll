@@ -3,6 +3,7 @@ package payroll.payroll;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -68,7 +69,7 @@ public class PayrollServiceImpl implements PayrollService {
     }
 
     @Override
-    public PayslipResponseDTO findPayslipDataById(Long id) {
+    public PayslipPDFResponseDTO findPayslipDataById(Long id) {
         PayrollHistory payroll = payrollHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 정보입니다"));
 
@@ -87,20 +88,20 @@ public class PayrollServiceImpl implements PayrollService {
                 .orElseThrow(() -> new IllegalArgumentException("다시 시도해주세요"));
 
 
-        return new PayslipResponseDTO(new PayrollResponseDTO(payroll, emp), emp, workHistory, insuranceRate, deptName,
+        return new PayslipPDFResponseDTO(new PayrollResponseDTO(payroll, emp), emp, workHistory, insuranceRate, deptName,
                 calcPensionBase(emp, year, month), calcHealthBase(emp, year, month , emp.getJoiningDate()),
                 isRetirement(emp.getRetirementDate(), year, month));
     }
 
     @Override
     @Transactional
-    public byte[] downloadPayrollExcel() throws IOException{
+    public void downloadPayrollExcel(HttpServletResponse response) throws IOException{
         List<String> headers = List.of(
                 "사원코드", "연도", "월", "전월소급분", "미지급수당", "미지급수당 사유",
                 "식대", "기타수당", "퇴직정산소득세", "소득세"
         );
 
-        return excelService.downloadExcel("급여대장", headers);
+        excelService.downloadExcel("급여대장", headers, response);
     }
 
     @Override
@@ -348,8 +349,8 @@ public class PayrollServiceImpl implements PayrollService {
                     int normalMinutes = Math.min(minutes, emp.getContractDailyWorkMinutes());
                     int overtimeWorkMinutes = Math.max(minutes - emp.getContractDailyWorkMinutes(), 0);
 
-                    return (int) (normalMinutes * hourlyWage * 2.5 / 60) +
-                            (overtimeWorkMinutes * hourlyWage * 3 / 60);
+                    return (int) (normalMinutes * hourlyWage * 1.5 / 60) +
+                            (overtimeWorkMinutes * hourlyWage * 2 / 60);
                 }).sum();
 
         return PayrollHistoryPaymentDTO.builder()
