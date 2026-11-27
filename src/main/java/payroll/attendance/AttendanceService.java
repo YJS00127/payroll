@@ -1,12 +1,15 @@
 package payroll.attendance;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.attendance.dto.AttendanceRequestDTO;
 import payroll.attendance.dto.AttendanceResponseDTO;
 import payroll.attendance.dto.AttendanceSearchDTO;
 import payroll.common.dto.ResultDTO;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface AttendanceService {
@@ -16,11 +19,11 @@ public interface AttendanceService {
 
     AttendanceResponseDTO getAttendanceById(Long id);
 
+    void downloadAttendanceExcel(HttpServletResponse response) throws IOException;
+
     ResultDTO saveAttendance(AttendanceRequestDTO requestDTO);
 
-//    ResultDTO saveAttendanceById(AttendanceResponseDTO requestDTO);
-
-//    ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs);
+    ResultDTO uploadAttendanceExcel(MultipartFile file) throws IOException;
 
     ResultDTO updateAttendance(Long id, AttendanceRequestDTO requestDTO);
 

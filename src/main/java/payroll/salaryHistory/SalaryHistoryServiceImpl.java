@@ -21,6 +21,7 @@ import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -86,22 +87,39 @@ public class SalaryHistoryServiceImpl implements SalaryHistoryService{
         return new ResultDTO("success", "급여 변경 성공");
     }
 
-//    @Override
-//    @Transactional
-//    public ResultDTO deleteSalaryHistory(Long id){
-//        SalaryHistory salaryHistory = salaryHistoryRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 변경 기록입니다."));
-//        // 물리 삭제
-//        salaryHistoryRepository.delete(salaryHistory);
-//
-//        return new ResultDTO("success", "급여 변경 기록 삭제 성공");
-//    }
+    @Override
+    @Transactional
+    public ResultDTO deleteSalaryHistory(Long id){
+        SalaryHistory salaryHistory = salaryHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 급여 변경 기록입니다."));
 
+        salaryHistory.delete();
+
+        return new ResultDTO("success", "급여 변경 기록 삭제 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO delSelectedSalaryHistory(List<Long> ids){
+        List<SalaryHistory> salaryHistories = salaryHistoryRepository.findAllById(ids);
+
+        if(salaryHistories.size() != Set.copyOf(ids).size() ||
+                salaryHistories.stream().anyMatch(salary ->
+                    salary.getDeleteYn().equals("Y"))){
+            throw new IllegalArgumentException("존재하지 않는 급여 기록이 포함되어있습니다");
+        }
+
+        salaryHistories.forEach(SalaryHistory::delete);
+
+        return new ResultDTO("success", "급여 변경 기록 삭제 성공");
+    }
 
 
     private Specification<SalaryHistory> createSpec(SalaryHistorySearchDTO searchDTO){
         return(root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
             if(StringUtils.hasText(searchDTO.getKeyword())){
                 String keyword = searchDTO.getKeyword().trim();

@@ -19,7 +19,9 @@
     <div id="leave-usage" class="tab-content active">
         <div id="leaveUsageSearchBox"></div>
         <div class="list-header">
-            <div class="button-delete-add">
+            <div class="top-button">
+                <a href="/api/leave-usage/excel" id="excelDownload">엑셀 양식 다운로드</a>
+                <button id="excelUpload" onclick="uploadLeaveUsageExcel()">엑셀 업로드</button>
                 <button id="deleteSelectedUsageBtn" onclick="delSelectedLeaveUsage()">일괄 삭제</button>
                 <button id="addUsageBtn" onclick="addLeaveUsage()">등록</button>
             </div>
@@ -42,7 +44,7 @@
     <div id="leave-record" class="tab-content">
         <div id="leaveRecordSearchBox"></div>
         <div class="list-header">
-            <div class="button-delete-add">
+            <div class="top-button">
                 <button id="deleteSelectedRecordBtn" onclick="delSelectedLeaveRecord()">일괄 삭제</button>
                 <button id="addRecordBtn" onclick="addLeaveRecord()">등록</button>
             </div>

@@ -1,10 +1,7 @@
 package payroll.common.excel;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +31,7 @@ public class ExcelService {
     }
 
     // 엑셀 업로드
-    public List<ExcelRow> uploadExcel(MultipartFile file, List<String> headers) throws IOException {
+    public List<ExcelRow> readExcel(MultipartFile file, List<String> headers) throws IOException {
         List<ExcelRow> rows = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
@@ -69,9 +66,18 @@ public class ExcelService {
                 List<String> values = new ArrayList<>();
 
                 for (int j = 0; j < headers.size(); j++) {
+                    Cell cell = row.getCell(j);
+                    String value;
 
-                    String value = formatter.formatCellValue(
-                            row.getCell(j));
+                    if(cell != null
+                            && cell.getCellType() == CellType.NUMERIC
+                            && DateUtil.isCellDateFormatted(cell)){
+                        value = cell.getLocalDateTimeCellValue()
+                                .toLocalDate()
+                                .toString();
+                    } else{
+                        value = formatter.formatCellValue(cell);
+                    }
 
                     values.add(value);
                 }

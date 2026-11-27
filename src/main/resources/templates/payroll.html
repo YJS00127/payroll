@@ -14,7 +14,9 @@
     <div id="searchBox"></div>
     <div class="list-container">
         <div class="list-header">
-            <div class="button-delete-add">
+            <div class="top-button">
+                <a href="/api/payroll/excel" id="excelDownload" type="button">엑셀 양식 다운로드</a>
+                <button id="excelUpload" onclick="uploadPayrollExcel()">엑셀 업로드</button>
                 <button id="deleteSelectedBtn" onclick="delSelectedPayroll()">일괄 삭제</button>
                 <button id="addBtn" onclick="addPayroll()">등록</button>
             </div>
@@ -30,7 +32,6 @@
             <th>총 지급액</th>
             <th>총 공제액</th>
             <th>실수령액</th>
-            <th>급여 지급일</th>
             <th>관리</th>
         </tr>
         </thead>

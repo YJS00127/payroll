@@ -1,5 +1,6 @@
 package payroll.salaryHistory;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,8 @@ import payroll.common.dto.ResultDTO;
 import payroll.salaryHistory.dto.SalaryHistoryRequestDTO;
 import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/salary")
@@ -29,12 +32,22 @@ public class SalaryHistoryController {
     }
 
     @PostMapping
-    public ResponseEntity<ResultDTO> saveSalaryHistory(@RequestBody SalaryHistoryRequestDTO requestDTO){
+    public ResponseEntity<ResultDTO> saveSalaryHistory(@RequestBody @Valid SalaryHistoryRequestDTO requestDTO){
         return ResponseEntity.ok(salaryHistoryService.saveSalaryHistory(requestDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResultDTO> updateSalaryHistory(@PathVariable Long id, @RequestBody SalaryHistoryRequestDTO requestDTO){
+    public ResponseEntity<ResultDTO> updateSalaryHistory(@PathVariable Long id, @RequestBody @Valid SalaryHistoryRequestDTO requestDTO){
         return ResponseEntity.ok(salaryHistoryService.updateSalaryHistory(id, requestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResultDTO> deleteSalaryHistory(@PathVariable Long id){
+        return ResponseEntity.ok(salaryHistoryService.deleteSalaryHistory(id));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ResultDTO> delSelectedSalaryHistory(@RequestBody List<Long> ids){
+        return ResponseEntity.ok(salaryHistoryService.delSelectedSalaryHistory(ids));
     }
 }

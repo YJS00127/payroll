@@ -15,7 +15,9 @@
     <div class="list-container">
         <div class="list-header">
             <span id="totalCount">총 0명</span>
-            <div class="button-delete-add">
+            <div class="top-button">
+                <a href="/api/emp/excel" id="excelDownload">엑셀 양식 다운로드</a>
+                <button id="excelUpload" onClick="uploadEmpExcel()">엑셀 업로드</button>
                 <button id="deleteSelectedBtn" onclick="delSelectedEmp()">일괄 삭제</button>
                 <button id="addBtn" onclick="addEmp()">등록</button>
             </div>

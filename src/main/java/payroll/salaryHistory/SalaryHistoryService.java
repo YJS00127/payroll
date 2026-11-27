@@ -8,6 +8,7 @@ import payroll.salaryHistory.dto.SalaryHistoryResponseDTO;
 import payroll.salaryHistory.dto.SalaryHistorySearchDTO;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface SalaryHistoryService {
     Page<SalaryHistoryResponseDTO> findSalaryHistory(SalaryHistorySearchDTO searchDTO, Pageable pageable);
@@ -18,4 +19,7 @@ public interface SalaryHistoryService {
 
     ResultDTO updateSalaryHistory(Long id, SalaryHistoryRequestDTO requestDTO);
 
+    ResultDTO deleteSalaryHistory(Long id);
+
+    ResultDTO delSelectedSalaryHistory(List<Long> ids);
 }

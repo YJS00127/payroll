@@ -45,7 +45,7 @@ public class EmployeeController {
                 ContentDisposition.attachment()
                         .filename("사원 엑셀 등록 양식.xlsx", StandardCharsets.UTF_8)
                         .build().toString()
-                );
+        );
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
         employeeService.downloadEmpExcel(response);

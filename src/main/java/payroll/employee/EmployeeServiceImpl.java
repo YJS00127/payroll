@@ -4,7 +4,10 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,12 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
+import payroll.common.excel.ExcelRow;
 import payroll.common.excel.ExcelService;
+import payroll.common.excel.ExcelValidator;
 import payroll.employee.dto.*;
 import payroll.entity.*;
 import payroll.repository.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -28,6 +35,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final ExcelService excelService;
+    private final ExcelValidator excelValidator;
 
     @Override
     public Page<EmpResponseDTO> findAllEmp(EmpSearchDTO searchDTO, Pageable pageable){
@@ -78,14 +86,43 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     @Transactional
-    public ResultDTO uploadEmpExcel(MultipartFile file) throws IOException{
+    public ResultDTO uploadEmpExcel(MultipartFile file) throws IOException {
         List<String> headers = List.of(
                 "이름", "사원코드", "부서명", "직급", "입사일", "생년월일",
                 "성별", "시급", "월평균 급여", "소정근로시간");
 
-        excelService.uploadExcel(file, headers);
+        List<ExcelRow> rows = excelService.readExcel(file, headers);
 
-        return new ResultDTO("success", "사원 엑셀 등록 성공");
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("등록할 사원 정보가 없습니다");
+        }
+
+        for (ExcelRow row : rows) {
+            int rowNum = row.getRowNum();
+
+            try {
+                List<String> v = row.getValues();
+
+                EmpRequestDTO dto = new EmpRequestDTO();
+
+                dto.setName(v.get(0));
+                dto.setCode(v.get(1));
+                dto.setDeptName(v.get(2));
+                dto.setRank(v.get(3));
+                dto.setJoiningDate(LocalDate.parse(v.get(4)));
+                dto.setBirth(LocalDate.parse(v.get(5)));
+                dto.setGender(v.get(6));
+                dto.setHourlyWage(Integer.parseInt(v.get(7)));
+                dto.setInitialMonthlyIncome(Integer.parseInt(v.get(8)));
+                dto.setContractDailyWorkMinutes(Integer.parseInt(v.get(9)));
+
+                excelValidator.validateDTO(dto);
+                saveEmp(dto);
+            } catch (RuntimeException e) {
+                throw new IllegalArgumentException(rowNum + "행: " + e.getMessage(), e);
+            }
+        }
+        return new ResultDTO("success", "사원 " + rows.size() + "명 등록 성공");
     }
 
     @Override

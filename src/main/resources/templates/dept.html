@@ -11,9 +11,11 @@
 <div th:replace="~{fragment/modal::modal}"></div>
 <h1>부서 페이지</h1>
 <div class="app">
+    <div id="searchBox"></div>
     <div class="list-container">
         <div class="list-header">
-            <div class="button-delete-add">
+            <span id="totalCount">총 0개</span>
+            <div class="top-button">
                 <button id="deleteSelectedBtn" onclick="delSelectedDept()">일괄 삭제</button>
                 <button id="addBtn" onclick="addDept()">등록</button>
             </div>
@@ -33,6 +35,7 @@
     </table>
 </div>
 <script src="/js/common.js"></script>
+<script src="/js/common/search.js"></script>
 <script src="/js/common/table.js"></script>
 <script src="/js/common/modal.js"></script>
 <script src="/js/dept.js"></script>

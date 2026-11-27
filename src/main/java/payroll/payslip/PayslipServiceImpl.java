@@ -15,6 +15,7 @@ import payroll.entity.PayrollHistory;
 import payroll.payslip.dto.PayslipDateRequestDTO;
 import payroll.payslip.dto.PayslipResponseDTO;
 import payroll.payslip.dto.PayslipSearchDTO;
+import payroll.repository.DepartmentRepository;
 import payroll.repository.EmployeeRepository;
 import payroll.repository.PayrollHistoryRepository;
 
@@ -27,6 +28,7 @@ import java.util.List;
 public class PayslipServiceImpl implements PayslipService{
     private final EmployeeRepository employeeRepository;
     private final PayrollHistoryRepository payrollHistoryRepository;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     public Page<PayslipResponseDTO> findPayslip(PayslipSearchDTO searchDTO, Pageable pageable){
@@ -34,7 +36,7 @@ public class PayslipServiceImpl implements PayslipService{
 
         return payrollHistoryRepository.findAll(spec, pageable)
                 .map(payrollHistory -> {
-                   Employee emp = employeeRepository.findById(payrollHistory.getId())
+                   Employee emp = employeeRepository.findById(payrollHistory.getEmpId())
                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
                    return new PayslipResponseDTO(payrollHistory, emp);
@@ -87,23 +89,27 @@ public class PayslipServiceImpl implements PayslipService{
             List<Predicate> predicates = new ArrayList<>();
 
             String keyword = searchDTO.getKeyword();
-            Employee emp = employeeRepository.findAllByNameOrCode(keyword)
-                            .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
 
             predicates.add(cb.equal(root.get("deleteYn"), "N"));
 
             if(StringUtils.hasText(keyword)){
-                Long empId = emp.getId();
-                predicates.add(cb.equal(root.get("empId"), empId));
+                Employee emp = employeeRepository.findByNameOrCode(keyword)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
+                predicates.add(cb.equal(root.get("empId"), emp.getId()));
             }
 
-            if(StringUtils.hasText(searchDTO.getDeptName())){
-                Long deptId = emp.getDeptId();
-                predicates.add(cb.equal(root.get("deptId"), deptId));
+            if (StringUtils.hasText(searchDTO.getDeptName())) {
+                Long deptId = departmentRepository.findIdByName(searchDTO.getDeptName())
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
+
+                List<Long> empIds = employeeRepository.findIdsByDeptId(deptId);
+
+                predicates.add(root.get("empId").in(empIds));
             }
 
-            if(StringUtils.hasText(searchDTO.getEmpRank())){
+            if (StringUtils.hasText(searchDTO.getEmpRank())) {
                 List<Long> empIds = employeeRepository.findIdsByRank(searchDTO.getEmpRank());
+
                 predicates.add(root.get("empId").in(empIds));
             }
 

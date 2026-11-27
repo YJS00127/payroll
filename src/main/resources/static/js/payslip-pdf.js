@@ -5,7 +5,6 @@ async function loadPayslipData(id){
     const data = await response.json();
 
     const payrollData = data.payroll;
-    console.log(data)
 
     document.getElementById("yearMonth").innerText =
         `${payrollData.year}년 ${payrollData.month}월 급여명세서`

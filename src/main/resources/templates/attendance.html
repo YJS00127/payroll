@@ -16,8 +16,10 @@
         <div class="list-container">
             <div class="list-header">
                 <span id="totalAttendanceCount">총 0건</span>
-                <div class="button-delete-add">
-                    <button id="deleteSelectedBtn" onclick="delSelectedAttendance()">삭제</button>
+                <div class="top-button">
+                    <a href="/api/attendance/excel" id="excelDownload">엑셀 양식 다운로드</a>
+                    <button id="excelUpload" onclick="uploadAttendanceExcel()">엑셀 업로드</button>
+                    <button id="deleteSelectedBtn" onclick="delSelectedAttendance()">일괄 삭제</button>
                     <button id="addBtn" onclick="addAttendance()">등록</button>
                 </div>
             </div>

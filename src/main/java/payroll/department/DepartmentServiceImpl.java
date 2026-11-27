@@ -2,17 +2,22 @@ package payroll.department;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import payroll.common.dto.ResultDTO;
 import payroll.common.exception.EmployeeInDepartmentException;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
+import payroll.department.dto.DeptSearchDTO;
 import payroll.entity.Department;
 import payroll.repository.DepartmentRepository;
 import payroll.repository.EmployeeRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -24,8 +29,10 @@ public class DepartmentServiceImpl implements DepartmentService{
     private final EmployeeRepository employeeRepository;
 
     @Override
-    public List<DeptResponseDTO> getAllDept(){
-        return departmentRepository.findAllByDeleteYn("N").stream()
+    public List<DeptResponseDTO> getAllDept(DeptSearchDTO searchDTO){
+        Specification<Department> spec = createSpec(searchDTO);
+
+        return departmentRepository.findAll(spec).stream()
                 .map(DeptResponseDTO::new)
                 .toList();
     }
@@ -94,5 +101,21 @@ public class DepartmentServiceImpl implements DepartmentService{
         departments.forEach(Department::delete);
 
         return new ResultDTO("success", "부서 삭제 성공");
+    }
+
+    private Specification<Department> createSpec(DeptSearchDTO searchDTO){
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("deleteYn"), "N"));
+
+            if(StringUtils.hasText(searchDTO.getKeyword())){
+                String keyword = searchDTO.getKeyword();
+                Long deptId = departmentRepository.findIdByCodeOrName(keyword)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 부서입니다"));
+                predicates.add(cb.equal(root.get("id"), deptId));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

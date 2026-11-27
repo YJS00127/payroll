@@ -49,14 +49,14 @@ public class LeaveRecord {
 
     @Builder
     public LeaveRecord(Long empId, int year, int month, double totalLeave,
-                       double usedLeave, double remainingLeave, int accruedLeave){
+                       double usedLeave, int accruedLeave){
         this.empId = empId;
         this.year = year;
         this.month = month;
         this.totalLeave = totalLeave;
-        this.usedLeave = usedLeave;
-        this.remainingLeave = remainingLeave;
         this.accruedLeave = accruedLeave;
+        this.usedLeave = usedLeave;
+        this.remainingLeave = totalLeave;
     }
 
     public void update(LeaveUpdateRequestDTO requestDTO){
@@ -95,5 +95,11 @@ public class LeaveRecord {
     public void cancelLeave(double leaveDays){
         this.usedLeave -= leaveDays;
         this.remainingLeave += leaveDays;
+    }
+
+    // 월차 수당 정산 후 휴가 초기화
+    public void settleLeave() {
+        this.totalLeave = this.usedLeave;
+        this.remainingLeave = 0;
     }
 }

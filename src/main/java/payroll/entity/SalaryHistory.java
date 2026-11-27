@@ -43,6 +43,10 @@ public class SalaryHistory {
     @Column(name = "update_at", insertable = false, updatable = false)
     private LocalDate updateAt;
 
+    @Comment("삭제 여부")
+    @Column(name = "delete_yn", insertable = false)
+    private String deleteYn;
+
     @Builder
     public SalaryHistory(Long empId, int previousHourlyWage, int newHourlyWage, LocalDate effectiveDate, String reason){
         this.empId = empId;
@@ -57,5 +61,9 @@ public class SalaryHistory {
         this.newHourlyWage = requestDTO.getNewHourlyWage();
         this.effectiveDate = requestDTO.getEffectiveDate();
         this.reason = requestDTO.getReason();
+    }
+
+    public void delete(){
+        this.deleteYn = "Y";
     }
 }

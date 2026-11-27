@@ -5,11 +5,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 import payroll.entity.Employee;
 
 import java.time.LocalDate;
 
 @Getter
+@Setter
 public class EmpRequestDTO {
     @NotBlank(message = "부서명을 입력해주세요")
     private String deptName;

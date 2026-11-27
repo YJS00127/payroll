@@ -50,6 +50,43 @@ const rankOptions = [
 
 let deptOptions;
 
+async function uploadEmpExcel(){
+    openModal({
+        title: "사원 엑셀 업로드",
+        fields: [{
+            name: "file",
+            label: "엑셀 파일",
+            type: "file",
+            accept: ".xlsx"
+        }],
+        onSubmit: async data => {
+            await uploadEmpExcelData(data.file);
+            await loadEmpData();
+        }
+    })
+}
+
+async function uploadEmpExcelData(file){
+    if(!file){
+        throw new Error("선택된 파일이 없습니다")
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`/api/emp/excel`, {
+        method: "POST",
+        body: formData
+    })
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "엑셀 등록 실패")
+    }
+
+    alert(result.message)
+}
+
 // 사원 등록 팝업
 function addEmp() {
     openModal({

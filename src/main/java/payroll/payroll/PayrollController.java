@@ -10,11 +10,11 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
 import payroll.payroll.dto.PayrollRequestDTO;
 import payroll.payroll.dto.PayrollResponseDTO;
 import payroll.payroll.dto.PayrollSearchDTO;
-import payroll.payroll.dto.PayslipPDFResponseDTO;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -37,13 +37,13 @@ public class PayrollController {
         return ResponseEntity.ok(payrollService.findPayrollById(id));
     }
 
-    @GetMapping("excel")
+    @GetMapping("/excel")
     public void downloadPayrollExcel(HttpServletResponse response) throws IOException{
 
         response.setHeader(
                 HttpHeaders.CONTENT_DISPOSITION,
                 ContentDisposition.attachment()
-                        .filename("근여 엑셀 등록 양식.xlsx", StandardCharsets.UTF_8)
+                        .filename("급여 엑셀 등록 양식.xlsx", StandardCharsets.UTF_8)
                         .build().toString()
         );
 
@@ -55,6 +55,11 @@ public class PayrollController {
     @PostMapping
     public ResponseEntity<ResultDTO> createPayrollHistory(@RequestBody @Valid PayrollRequestDTO requestDTO){
         return ResponseEntity.ok(payrollService.savePayroll(requestDTO));
+    }
+
+    @PostMapping("/excel")
+    public ResponseEntity<ResultDTO> uploadPayrollExcel(MultipartFile file) throws IOException {
+        return ResponseEntity.ok(payrollService.uploadPayrollExcel(file));
     }
 
     @PutMapping("/{id}")

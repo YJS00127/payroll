@@ -25,9 +25,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     @Query("SELECT e.id FROM Employee e WHERE e.name = :keyword OR e.code = :keyword")
     Optional<Long> findIdByNameOrCode(@Param("keyword") String keyword);
 
-    @Query("SELECT e FROM Employee e wHERE e.name = :keyword OR e.code = :keyword")
-    Optional<Employee> findAllByNameOrCode(@Param("keyword")String keyword);
+    @Query("SELECT e FROM Employee e WHERE e.name = :keyword OR e.code = :keyword")
+    Optional<Employee> findByNameOrCode(@Param("keyword")String keyword);
 
+    @Query("SELECT e.id FROM Employee e WHERE e.rank = :rank")
     List<Long> findIdsByRank(@Param("rank") String rank);
+
+    @Query("SELECT e.id FROM Employee e WHERE e.deptId = :deptId")
+    List<Long> findIdsByDeptId(@Param("deptId") Long deptId);
 }
 

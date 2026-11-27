@@ -9,17 +9,9 @@ import payroll.entity.LeaveRecord;
 import java.util.Optional;
 
 public interface LeaveRecordRepository extends JpaRepository<LeaveRecord, Long>, JpaSpecificationExecutor<LeaveRecord> {
-    Optional<LeaveRecord> findByEmpIdAndYearAndMonth(Long empId, int year, int month);
+    Optional<LeaveRecord> findByEmpIdAndYearAndMonth(@Param("empId") Long empId, @Param("year") int year, @Param("month") int month);
 
-    int findRemainingLeaveByEmpIdAndYear(@Param("empId")Long empId, @Param("year")int year);
-
-    @Query(value = """
-    SELECT SUM(remaining_leave)
-    FROM leave_record
-    WHERE emp_id = :empId
-      AND year BETWEEN :startYear AND :endYear
-    """, nativeQuery = true)
-    int sumRemainingLeave(@Param("empId") Long empId, @Param("startYear") int startYear, @Param("endYear") int endYear);
+    Optional<Double> findRemainingLeaveByEmpIdAndYearAndMonth(@Param("empId")Long empId, @Param("year")int year, @Param("month")int month);
 
     @Query(value = """
         SELECT total_leave FROM leave_record

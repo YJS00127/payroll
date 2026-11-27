@@ -13,10 +13,8 @@ async function loadPayslipData(page = searchParams.get("page") ?? 0, params = se
     searchParams = new URLSearchParams(params);
     searchParams.set("page", page);
 
-    const response = await fetch(`/api/payroll?${searchParams.toString()}`)
+    const response = await fetch(`/api/payslip?${searchParams.toString()}`)
     const pageData = await response.json();
-
-    console.log(pageData)
 
     const paySlipData = pageData.content.map(payslip => ({
         ...payslip,
@@ -189,7 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         {name: "year", placeholder: "연도"},
         {name: "month", placeholder: "월"}
     ], params => {
-        loadPayslipData()
+        loadPayslipData(0, params)
     })
 })
 

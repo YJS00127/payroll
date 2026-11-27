@@ -39,10 +39,14 @@
         <div id="salaryHistorySearchBox"></div>
         <div class="list-header">
             <span id="totalSalaryCount">총 0건</span>
+            <div class="top-button">
+                <button id="deleteSelectedBtn" onclick="delSelectedSalary()">일괄 삭제</button>
+            </div>
         </div>
         <table class="list-table">
             <thead>
             <tr>
+                <th><input type="checkbox" id="selectAll"></th>
                 <th>사원명</th>
                 <th>사원코드</th>
                 <th>변경일</th>

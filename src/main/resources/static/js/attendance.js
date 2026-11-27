@@ -57,6 +57,43 @@ async function loadAttendanceData(page = searchParams.get("page") ?? 0, params =
     createPagination(pageData, nextPage => loadAttendanceData(nextPage));
 }
 
+async function uploadAttendanceExcel(){
+    openModal({
+        title: "근태 엑셀 업로드",
+        fields: [{
+            name: "file",
+            label: "엑셀 파일",
+            type: "file",
+            accept: ".xlsx"
+        }],
+        onSubmit: async data => {
+            await uploadAttendanceExcelData(data.file);
+            await loadAttendanceData();
+        }
+    })
+}
+
+async function uploadAttendanceExcelData(file){
+    if(!file){
+        throw new Error("선택된 파일이 없습니다")
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`/api/attendance/excel`, {
+        method: "POST",
+        body: formData
+    })
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "엑셀 등록 실패")
+    }
+
+    alert(result.message)
+}
+
 document.addEventListener("change", e => {
     if (!e.target.matches('[name="status"]')) return;
 

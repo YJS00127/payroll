@@ -14,13 +14,12 @@ public interface LeaveUsageRepository extends JpaRepository<LeaveUsage, Long>, J
     @Query(value = """
     SELECT EXISTS(
         SELECT 1 FROM leave_usage l
-        WHERE l.id != :id AND
-            l.emp_id = :empId AND
+        WHERE l.emp_id = :empId AND
             l.delete_yn = 'N' AND
             l.start_date <= :endDate AND
             l.end_date >= :startDate)
     """, nativeQuery = true)
-    Integer existsLeaveUsage(@Param("id") Long id, @Param("empId") Long empId,
+    Integer existsLeaveUsage(@Param("empId") Long empId,
                                   @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     Optional<LeaveUsage> findByIdAndDeleteYn(@Param("id") Long id, @Param("deleteYn") String deleteYn);

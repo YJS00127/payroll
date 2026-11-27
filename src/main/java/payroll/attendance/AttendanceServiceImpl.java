@@ -3,6 +3,7 @@ package payroll.attendance;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,10 +11,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.attendance.dto.AttendanceRequestDTO;
 import payroll.attendance.dto.AttendanceResponseDTO;
 import payroll.attendance.dto.AttendanceSearchDTO;
 import payroll.common.dto.ResultDTO;
+import payroll.common.excel.ExcelRow;
+import payroll.common.excel.ExcelService;
+import payroll.common.excel.ExcelValidator;
 import payroll.entity.AttendanceRecord;
 import payroll.entity.Employee;
 import payroll.holiday.HolidayService;
@@ -21,8 +26,10 @@ import payroll.repository.AttendanceRecordRepository;
 import payroll.repository.EmployeeRepository;
 import payroll.workHistory.WorkService;
 
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -34,6 +41,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final EmployeeRepository employeeRepository;
     private final WorkService workService;
     private final HolidayService holidayService;
+    private final ExcelService excelService;
+    private final ExcelValidator excelValidator;
 
     @Override
     public Page<AttendanceResponseDTO> getAttendance(AttendanceSearchDTO searchDTO,
@@ -61,10 +70,17 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    public void downloadAttendanceExcel(HttpServletResponse response) throws IOException {
+        List<String> headers = List.of(
+                "사원코드", "근로일", "출근 시간", "퇴근 시간", "근로 상태");
+
+        excelService.downloadExcel("근태등록", headers, response);
+    }
+
+    @Override
     @Transactional
     public ResultDTO saveAttendance(AttendanceRequestDTO requestDTO) {
-        if((requestDTO.getEmpCode() == null || !StringUtils.hasText(requestDTO.getEmpCode())) &&
-                (requestDTO.getEmpName() == null || !StringUtils.hasText(requestDTO.getEmpName()))){
+        if(!StringUtils.hasText(requestDTO.getEmpCode())) {
             throw new IllegalArgumentException("사원을 선택해주세요");
         }
 
@@ -77,11 +93,6 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         if(attendanceRecordRepository.existsByEmpIdAndWorkDate(emp.getId(), requestDTO.getWorkDate())) {
             throw new EntityExistsException("이미 존재하는 근로 기록입니다");
-        }
-
-        if(!requestDTO.getStatus().equals("휴가") &&
-                requestDTO.getWorkDate().isAfter(LocalDate.now())){
-            throw new IllegalArgumentException("근태는 미리 등록할 수 없습니다");
         }
 
         Map<String, Integer> work = calculateWorkHour(requestDTO, emp);
@@ -119,100 +130,41 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResultDTO("success", "근로 정보 저장 성공");
     }
 
-//    @Override
-//    @Transactional
-//    public ResultDTO saveAttendanceAll(List<AttendanceRequestDTO> requestDTOs) {
-//        if (requestDTOs == null || requestDTOs.isEmpty()) {
-//            throw new IllegalArgumentException("등록할 근로 정보가 입력되지 않았습니다");
-//        }
-//
-//        Set<String> empCodes = requestDTOs.stream()
-//                .map(AttendanceRequestDTO::getEmpCode)
-//                .collect(Collectors.toSet());
-//
-//        Map<String, Employee> empMap = employeeRepository.findByCodeIn(empCodes).stream()
-//                .collect(Collectors.toMap(
-//                        Employee::getCode,
-//                        emp -> emp
-//                ));
-//
-//        if (empMap.size() != empCodes.size()) {
-//            throw new EntityNotFoundException("존재하지 않는 사원이 포함되어 있습니다");
-//        }
-//
-//        record AttendanceKey(Long empId, LocalDate workDate) {
-//        }
-//
-//        Set<AttendanceKey> keys = requestDTOs.stream()
-//                .map(dto -> new AttendanceKey(
-//                        empMap.get(dto.getEmpCode()).getId(),
-//                        dto.getWorkDate()
-//                ))
-//                .collect(Collectors.toSet());
-//
-//        if (keys.size() != requestDTOs.size()) {
-//            throw new EntityExistsException("중복되는 근로 정보가 존재합니다");
-//        }
-//
-//        Set<Long> empIds = keys.stream()
-//                .map(AttendanceKey::empId)
-//                .collect(Collectors.toSet());
-//
-//        Set<LocalDate> workDates = keys.stream()
-//                .map(AttendanceKey::workDate)
-//                .collect(Collectors.toSet());
-//
-//        List<AttendanceRecord> existing =
-//                attendanceRecordRepository.findByEmpIdInAndWorkDateIn(empIds, workDates);
-//
-//        boolean duplicated = existing.stream()
-//                .anyMatch(record -> keys.contains(
-//                        new AttendanceKey(
-//                                record.getEmpId(),
-//                                record.getWorkDate()
-//                        )
-//                ));
-//
-//        if (duplicated) {
-//            throw new EntityExistsException("이미 등록된 근로 정보가 존재합니다");
-//        }
-//
-//        List<AttendanceRecord> records = requestDTOs.stream()
-//                .map(dto -> {
-//                    Employee emp = empMap.get(dto.getEmpCode());
-//
-//                    Map<String, Integer> work = calculateWorkHour(dto, emp);
-//
-//                    return dto.toEntity(
-//                            emp.getId(),
-//                            work.get("workMinutes"),
-//                            work.get("overtimeWorkMinutes"),
-//                            work.get("holidayWorkMinutes")
-//                    );
-//                }).toList();
-//
-//        List<AttendanceRecord> saved = attendanceRecordRepository.saveAllAndFlush(records);
-//
-//        Set<AttendanceKey> updateTargets = new HashSet<>();
-//
-//        for (AttendanceRecord record : saved) {
-//            LocalDate date = record.getWorkDate();
-//
-//            LocalDate paymentDate = date.getDayOfMonth() >= 15
-//                    ? date.plusMonths(1) : date;
-//
-//            AttendanceKey target = new AttendanceKey(
-//                    record.getEmpId(),
-//                    paymentDate.withDayOfMonth(1)
-//            );
-//
-//            if (updateTargets.add(target)) {
-//                workService.autoUpdateWorkHistory(record);
-//            }
-//        }
-//
-//        return new ResultDTO("success", "근로 정보 다중 등록 성공");
-//    }
+    @Override
+    @Transactional
+    public ResultDTO uploadAttendanceExcel(MultipartFile file) throws IOException{
+        List<String> headers = List.of(
+                "사원코드", "근로일", "출근 시간", "퇴근 시간", "근로 상태");
+
+        List<ExcelRow> rows = excelService.readExcel(file, headers);
+
+        if(rows.isEmpty()){
+            throw new IllegalArgumentException("등록할 근태 정보가 없습니다");
+        }
+
+        for(ExcelRow row : rows){
+            int rowNum = row.getRowNum();
+
+            try{
+                List<String> v = row.getValues();
+
+                AttendanceRequestDTO dto = new AttendanceRequestDTO();
+
+                dto.setEmpCode(v.get(0));
+                dto.setWorkDate(LocalDate.parse(v.get(1)));
+                dto.setCheckIn(LocalTime.parse(v.get(2)));
+                dto.setCheckOut(LocalTime.parse(v.get(3)));
+                dto.setStatus(v.get(4));
+
+                excelValidator.validateDTO(dto);
+                saveAttendance(dto);
+            }
+            catch(IllegalArgumentException e){
+                throw new IllegalArgumentException(rowNum + "행: " + e.getMessage());
+            }
+        }
+        return new ResultDTO("success", "근태 " + rows.size() + "개 등록 성공");
+    }
 
 
     @Override

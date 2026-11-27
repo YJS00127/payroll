@@ -12,13 +12,7 @@ import java.util.List;
 public interface WorkService {
     List<WorkResponseDTO> findWork(WorkSearchDTO searchDTO);
 
-    WorkResponseDTO findWorkById(Long id);
-
     void autoSaveWork(AttendanceRecord attendanceRecord);
-
-//    ResultDTO saveWorkHistory(WorkRequestDTO requestDTO);
-
-//    ResultDTO updateWorkHistory(WorkUpdateRequestDTO updateRequestDTO);
 
     void autoUpdateWorkHistory(Long empId, int year, int month);
 }

@@ -32,6 +32,43 @@ async function loadLeaveUsageData(page= searchUsageParams.get("page") ?? 0, para
     createPagination(data, nextPage => loadLeaveUsageData(nextPage));
 }
 
+async function uploadLeaveUsageExcel(){
+    openModal({
+        title: "엑셀 업로드",
+        fields: [{
+            name: "file",
+            label: "엑셀 파일",
+            type: "file",
+            accept: ".xlsx"
+        }],
+        onSubmit: async data => {
+            await uploadLeaveUsageExcelData(data.file);
+            await loadLeaveUsageData();
+    }
+    })
+}
+
+async function uploadLeaveUsageExcelData(file){
+    if(!file){
+        throw new Error("선택된 파일이 없습니다")
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`/api/leave-usage/excel`, {
+        method: "POST",
+        body: formData
+    })
+    const result = await response.json();
+
+    if(!response.ok){
+        throw new Error(result.message)
+    }
+
+    alert(result.message)
+}
+
 async function addLeaveUsage(){
     openModal({
         title: "휴가 이력 등록",
@@ -178,8 +215,6 @@ async function delSelectedLeaveUsage(){
 async function loadLeaveRecordData(page=searchRecordParams.get("page") ?? 0, params= searchRecordParams){
     searchRecordParams = new URLSearchParams(params);
     searchRecordParams.set("page", page);
-
-    console.log(searchUsageParams)
 
     const response = await fetch(`/api/leave-record?${searchRecordParams.toString()}`)
     const pageData = await response.json();

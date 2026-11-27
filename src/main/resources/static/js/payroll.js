@@ -20,7 +20,6 @@ async function loadPayrollData(page=searchParams.get("page") ?? 0, params = sear
         {name: "grossSalary"},
         {name: "totalDeduction"},
         {name: "netSalary"},
-        {name: "paymentDate"},
         {
             type: "button",
             buttons: [
@@ -32,6 +31,45 @@ async function loadPayrollData(page=searchParams.get("page") ?? 0, params = sear
 
     createPagination(pageData, nextPage => loadPayrollData(nextPage));
 }
+
+async function uploadPayrollExcel() {
+    openModal({
+        title: "급여 엑셀 업로드",
+        fields: [{
+            name: "file",
+            label: "엑셀파일",
+            type: "file",
+            accept: ".xlsx"
+        }],
+        onSubmit: async data => {
+            await uploadPayrollExcelData(data.file);
+            await loadPayrollData();
+        }
+    })
+}
+
+async function uploadPayrollExcelData(file){
+    if(!file){
+        throw new Error("선택된 파일이 없습니다")
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`/api/payroll/excel`, {
+        method: "POST",
+        body: formData
+    })
+    const result = await response.json();
+
+    if(!response.ok || result.result === "fail"){
+        throw new Error(result.message || "엑셀 등록 실패")
+    }
+
+    alert(result.message);
+}
+
+
 
 function addPayroll(){
     openModal({
@@ -72,7 +110,6 @@ async function savePayroll(data){
 async function editPayroll(payroll){
     const response = await fetch(`/api/payroll/${payroll.id}`);
     const payrollData = await response.json();
-    console.log(payrollData)
 
     openModal({
         title: "급여 수정",

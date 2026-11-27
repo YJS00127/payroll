@@ -14,10 +14,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long>, J
 
     boolean existsByCode(@Param("code") String code);
 
-    List<Department> findByNameInAndDeleteYn(@Param("names") Collection<String> names, @Param("deleteYn")String deleteYn);
-
-    List<Department> findAllByDeleteYn(@Param("deleteYn")String deleteYn);
-
     @Query("SELECT d.id FROM Department d WHERE d.name = :name")
     Optional<Long> findIdByName(@Param("name")String name);
+
+    @Query("SELECT d.id FROM Department d WHERE d.code = :keyword OR d.name = :keyword")
+    Optional<Long> findIdByCodeOrName(@Param("keyword") String keyword);
 }

@@ -3,6 +3,7 @@ package payroll.payroll;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
 import payroll.payroll.dto.PayrollRequestDTO;
 import payroll.payroll.dto.PayrollResponseDTO;
@@ -22,6 +23,8 @@ public interface PayrollService {
     ResultDTO savePayroll(PayrollRequestDTO requestDTO);
 
     void downloadPayrollExcel(HttpServletResponse response) throws IOException;
+
+    ResultDTO uploadPayrollExcel(MultipartFile file) throws IOException;
 
     ResultDTO updatePayroll(PayrollRequestDTO requestDTO, Long id);
 

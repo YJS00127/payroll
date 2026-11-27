@@ -52,35 +52,6 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public WorkResponseDTO findWorkById(Long id) {
-        WorkHistory workHistory = workHistoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 근무 기록입니다"));
-        Employee emp = employeeRepository.findById(workHistory.getEmpId())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
-
-        return new WorkResponseDTO(workHistory, emp);
-    }
-
-    // 월별 근로 기록 저장
-//    @Override
-//    @Transactional
-//    public ResultDTO saveWorkHistory(WorkRequestDTO requestDTO) {
-//        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
-//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
-//        int year = requestDTO.getYear();
-//        int month = requestDTO.getMonth();
-//
-//        if (workHistoryRepository.existsByEmpIdAndYearAndMonth(empId, year, month)) {
-//            throw new EntityExistsException("해당 월의 사원 급여 정보가 이미 존재합니다");
-//        }
-//
-//        WorkHistory workHistory = workRecord(empId, year, month);
-//        workHistoryRepository.save(workHistory);
-//
-//        return new ResultDTO("success", "근무 기록 저장 성공");
-//    }
-
-    @Override
     @Transactional
     public void autoSaveWork(AttendanceRecord attendance) {
         Long empId = attendance.getEmpId();
@@ -107,24 +78,6 @@ public class WorkServiceImpl implements WorkService {
                 calculateWeeklyHolidays(records, start, end)
         );
     }
-
-//    @Override
-//    @Transactional
-//    public ResultDTO updateWorkHistory(WorkUpdateRequestDTO requestDTO) {
-//        Long empId = employeeRepository.findIdByCode(requestDTO.getEmpCode())
-//                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사원입니다"));
-//
-//        WorkHistory workHistory = workHistoryRepository.findByEmpIdAndYearAndMonth(empId, requestDTO.getYear(), requestDTO.getMonth())
-//                .orElseThrow(() -> new EntityNotFoundException("해당 월의 근로 기록이 없습니다"));
-//        workHistory.update(
-//                requestDTO.getWorkDays(),
-//                requestDTO.getTotalWorkHour() * 60,
-//                requestDTO.getOvertimeWorkHour() * 60,
-//                requestDTO.getHolidayWorkHour() * 60,
-//                requestDTO.getWeeklyHolidayDays()
-//        );
-//        return new ResultDTO("success", "근로 기록 수정 성공");
-//    }
 
     @Override
     @Transactional

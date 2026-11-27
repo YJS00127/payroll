@@ -130,6 +130,10 @@
     font-weight: 600;
 }
 
+.top-button {
+    margin-left: auto;
+}
+
 /* 등록 버튼 */
 #addBtn, #addUsageBtn, #addRecordBtn {
     background: #2563eb;
@@ -140,8 +144,29 @@
 /* 일괄 삭제 버튼 */
 #deleteSelectedBtn, #deleteSelectedRecordBtn, #deleteSelectedUsageBtn {
     color: #dc2626;
-    border-color: #fecaca;
+    border-color: #dc2626;
 }
+
+#excelDownload {
+    display: inline-block;
+    padding: 9px 16px;
+    border: 1px solid #15803d;
+    border-radius: 5px;
+    background: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#excelDownload:hover {
+    background-color: #f1f5f9;
+}
+
+#excelUpload, #excelDownload {
+    color: #67C167FF;
+    border-color: #15803d;
+}
+
 [hidden] {
     display: none !important;
 }
@@ -150,10 +175,6 @@
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-}
-
-.button-delete-add {
-    margin-left: auto;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

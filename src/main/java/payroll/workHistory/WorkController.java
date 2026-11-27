@@ -23,15 +23,4 @@ public class WorkController {
     public ResponseEntity<List<WorkResponseDTO>> findWorkAll(@ModelAttribute WorkSearchDTO searchDTO){
         return ResponseEntity.ok(workService.findWork(searchDTO));
     }
-
-//    @PostMapping("/work-history")
-//    public ResponseEntity<ResultDTO> saveWorkHistory(@RequestBody WorkRequestDTO requestDTO){
-//        return ResponseEntity.ok(workService.saveWorkHistory(requestDTO));
-//    }
-//
-//    @PutMapping("/work-history/{id}")
-//    public ResponseEntity<ResultDTO> updateWorkHistory(@RequestBody @Valid WorkUpdateRequestDTO requestDTO){
-//        return ResponseEntity.ok(workService.updateWorkHistory(requestDTO));
-//    }
-
 }

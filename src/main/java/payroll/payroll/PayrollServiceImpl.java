@@ -11,8 +11,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import payroll.common.dto.ResultDTO;
+import payroll.common.excel.ExcelRow;
 import payroll.common.excel.ExcelService;
+import payroll.common.excel.ExcelValidator;
 import payroll.entity.*;
 import payroll.holiday.HolidayService;
 import payroll.payroll.dto.*;
@@ -42,6 +45,7 @@ public class PayrollServiceImpl implements PayrollService {
     private final DepartmentRepository departmentRepository;
     private final HolidayService holidayService;
     private final ExcelService excelService;
+    private final ExcelValidator excelValidator;
 
     @Override
     public Page<PayrollResponseDTO> findPayroll(PayrollSearchDTO searchDTO,
@@ -153,6 +157,47 @@ public class PayrollServiceImpl implements PayrollService {
         payrollHistoryRepository.save(payroll);
 
         return new ResultDTO("success", "급여 정보 저장 성공");
+    }
+
+    @Override
+    @Transactional
+    public ResultDTO uploadPayrollExcel(MultipartFile file) throws IOException {
+        List<String> headers = List.of(
+                "사원코드", "연도", "월", "전월소급분", "미지급수당", "미지급수당 사유",
+                "식대", "기타수당", "퇴직정산소득세", "소득세");
+
+        List<ExcelRow> rows = excelService.readExcel(file, headers);
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("등록할 급여 정보가 없습니다");
+        }
+
+        for (ExcelRow row : rows) {
+            int rowNum = row.getRowNum();
+
+            try{
+                List<String> v = row.getValues();
+
+                PayrollRequestDTO dto = new PayrollRequestDTO();
+
+                dto.setEmpCode(v.get(0));
+                dto.setYear(Integer.parseInt(v.get(1)));
+                dto.setMonth(Integer.parseInt(v.get(2)));
+                dto.setRetroactivePay(Integer.parseInt(v.get(3)));
+                dto.setUnpaidAllowance(Integer.parseInt(v.get(4)));
+                dto.setUnpaidAllowanceReason(v.get(5));
+                dto.setDailyMealAllowance(Integer.parseInt(v.get(6)));
+                dto.setOtherAllowance(Integer.parseInt(v.get(7)));
+                dto.setRetirementIncomeTax(Integer.parseInt(v.get(8)));
+                dto.setIncomeTax(Integer.parseInt(v.get(9)));
+
+                excelValidator.validateDTO(dto);
+                savePayroll(dto);
+            } catch(IllegalArgumentException e){
+                throw new IllegalArgumentException(rowNum + "행: " + e.getMessage());
+            }
+        }
+        return new ResultDTO("success", "급여 " + rows.size() + "개 저장 완료");
     }
 
     @Override
@@ -312,22 +357,34 @@ public class PayrollServiceImpl implements PayrollService {
         int retroactivePay = requestDTO.getRetroactivePay();
 
         // 월차수당
-        // 입사 1년차 미만 시 월 개근마다 월차 1개 획득, 입사 1년 전까지 유지되다가 입사 1년과 동시에 사라짐
-        // 입사 1년 이상 시 매년 초 연차 발생 그 해 말 연차 미사용 삭제
         int monthlyLeavePay = 0;
 
+        LocalDate requestDate = LocalDate.of(year, month, 1);
         LocalDate oneYearDate = joiningDate.plusYears(1);
+        LocalDate previousDate = requestDate.minusMonths(1);
 
-        // 급여 명세서 날짜 사이에 입사 1년이 포함될 시 그 명세서에 월차수당 계산
-        if (!oneYearDate.isBefore(start)
-                && !oneYearDate.isAfter(end)) {
-            // 입사연도부터 1주년 연도까지 잔여 월차 합산
-            int remainingLeave = leaveRecordRepository.sumRemainingLeave(empId, joiningDate.getYear(), oneYearDate.getYear());
+        // 입사 1주년 다음 달
+        boolean isFirstYear =
+                previousDate.getYear() == oneYearDate.getYear()
+                        && previousDate.getMonthValue() == oneYearDate.getMonthValue();
 
-            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyMinutes / 60;
-        } else if (month == 1 && year > joiningDate.getYear() + 1) {
-            int remainingLeave = leaveRecordRepository.findRemainingLeaveByEmpIdAndYear(empId, year - 1);
-            monthlyLeavePay = remainingLeave * hourlyWage * contractDailyMinutes / 60;
+        // 입사 1년 이후 매년 1월
+        boolean isYearEnd =
+                month == 1 && !previousDate.withDayOfMonth(
+                        previousDate.lengthOfMonth()).isBefore(oneYearDate);
+
+        if (isFirstYear || isYearEnd) {
+            double remainingLeave = leaveRecordRepository
+                    .findRemainingLeaveByEmpIdAndYearAndMonth(
+                            empId,
+                            previousDate.getYear(),
+                            previousDate.getMonthValue())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "휴가 정보가 존재하지 않습니다"));
+
+            monthlyLeavePay = (int) (
+                    remainingLeave * hourlyWage * contractDailyMinutes / 60
+            );
         }
 
         // 식대
@@ -366,6 +423,8 @@ public class PayrollServiceImpl implements PayrollService {
                 .otherAllowance(otherAllowance)
                 .build();
     }
+
+
 
     // 미지급수당 사유 검증
     private void validUnpaidAllowance(int unpaidAllowance, String reason) {

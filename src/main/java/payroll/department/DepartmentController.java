@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import payroll.common.dto.ResultDTO;
 import payroll.department.dto.DeptRequestDTO;
 import payroll.department.dto.DeptResponseDTO;
+import payroll.department.dto.DeptSearchDTO;
 
 import java.util.List;
 
@@ -19,8 +20,8 @@ public class DepartmentController {
     private final DepartmentService deptService;
 
     @GetMapping
-    public ResponseEntity<List<DeptResponseDTO>> getAllDept(){
-        return ResponseEntity.ok(deptService.getAllDept());
+    public ResponseEntity<List<DeptResponseDTO>> getAllDept(@ModelAttribute DeptSearchDTO searchDTO){
+        return ResponseEntity.ok(deptService.getAllDept(searchDTO));
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,10 @@
+let searchParams = new URLSearchParams();
+
 // 부서 목록 조회
-async function loadDeptData() {
-    const response = await fetch("/api/dept")
+async function loadDeptData(params = searchParams) {
+    searchParams = new URLSearchParams(params);
+
+    const response = await fetch(`/api/dept?${searchParams.toString()}`)
     const deptData = await response.json();
 
     renderTable(".dept-list", deptData, [
@@ -16,6 +20,10 @@ async function loadDeptData() {
             ]
         }
     ]);
+
+    document.getElementById("totalCount").innerHTML =
+        `총 ${deptData.length}개`;
+
 }
 
 function addDept() {
@@ -150,5 +158,12 @@ document.addEventListener("DOMContentLoaded", () => {
         selectAll.checked = checkboxes.length > 0 &&
             [...checkboxes].every(checkbox => checkbox.checked);
     })
+
+    createSearchBox([
+        {name: "keyword", placeholder: "부서명 또는 부서코드 검색"}
+    ], params => {
+        loadDeptData(params);
+    })
+
     loadDeptData();
 });

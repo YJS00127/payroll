@@ -1,17 +1,21 @@
 package payroll.attendance.dto;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 import payroll.entity.AttendanceRecord;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
+@Setter
 public class AttendanceRequestDTO {
-    private String empName;
+    @NotBlank(message = "사원코드를 입력해주세요")
     private String empCode;
+//    @Future(message = "근태를 미리 등록할 수 없습니다")
     @NotNull(message = "근로일을 입력해주세요")
     private LocalDate workDate;
     @NotNull(message = "출근 시간을 입력해주세요")
